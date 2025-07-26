@@ -12,8 +12,8 @@
   },
   "scripts": {
     "test": "node --test test/**/*.test.js",
-    "dev": "node bin/cli.js watch --source examples/basic/src --output dist",
-    "build": "node bin/cli.js build --source examples/basic/src --output dist"
+    "example": "node bin/cli.js watch --source examples/basic/src --output  examples/basic/dist & live-server  examples/basic/dist --port=3000 --wait=500",
+    "build": "node bin/cli.js build --source examples/basic/src --output  examples/basic/dist"
   },
   "keywords": [
     "static-site-generator",

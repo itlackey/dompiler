@@ -42,29 +42,32 @@ my-site/
 ## 🔧 How It Works
 
 ### HTML Includes
+
 Use Apache SSI syntax to include partials:
 
 ```html
 <!-- index.html -->
 <html>
-<head>
-  <title>My Site</title>
-  <!--#include virtual="/includes/head.html" -->
-</head>
-<body>
-  <!--#include virtual="/includes/header.html" -->
-  <main>
-    <h1>Welcome!</h1>
-  </main>
-  <!--#include virtual="/includes/footer.html" -->
-</body>
+  <head>
+    <!--/includes/head.html automatically injected here -->
+    <title>My Site</title>
+  </head>
+  <body>
+    <!--#include virtual="/includes/header.html" -->
+    <main>
+      <h1>Welcome!</h1>
+    </main>
+    <!--#include virtual="/includes/footer.html" -->
+  </body>
 </html>
 ```
 
 ### Automatic Head Injection
+
 Place common meta tags, CSS, and scripts in `head.html` and they'll be automatically injected into every page's `<head>` section.
 
 ### Live Development
+
 Use `vanilla-wafer watch` to automatically rebuild your site when files change. For live reloading in the browser, combine with your favorite development server like `live-server`:
 
 ```bash
@@ -115,6 +118,7 @@ live-server dist --port=3000
 ## 🌟 Why Vanilla Wafer?
 
 Perfect for:
+
 - **Static websites** that need shared components
 - **HTML prototypes** with reusable elements
 - **Documentation sites** with consistent layouts
@@ -129,4 +133,4 @@ Perfect for:
 
 ---
 
-*Built with ❤️ for frontend developers who love simple, powerful tools.*
+_Built with ❤️ for frontend developers who love simple, powerful tools._
