@@ -95,11 +95,15 @@ Options:
   --head          Custom head include file path
   --port, -p      Server port (default: 3000)
   --host          Server host (default: localhost)
+  --pretty-urls   Generate pretty URLs (about.md → about/index.html)
+  --base-url      Base URL for sitemap.xml (default: https://example.com)
   --help, -h      Show this help message
   --version, -v   Show version number
 
 Examples:
   dompile build --source src --output dist
+  dompile build --source src --output dist --pretty-urls
+  dompile build --source src --output dist --base-url https://mysite.com
   dompile watch --source src --output dist
   dompile serve --source src --output dist --port 3000
   dompile build --head common/head.html

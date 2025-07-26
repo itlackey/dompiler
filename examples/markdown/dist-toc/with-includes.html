@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown with Includes</title>
+  <meta name="description" content="Testing Apache-style includes in markdown">
+  <style>
+    body { 
+      font-family: system-ui, sans-serif; 
+      max-width: 800px; 
+      margin: 0 auto; 
+      padding: 20px; 
+      line-height: 1.6; 
+    }
+    .table-of-contents {
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .table-of-contents h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    .table-of-contents ol {
+      margin-left: 0;
+      padding-left: 20px;
+    }
+    .table-of-contents a {
+      text-decoration: none;
+      color: #0066cc;
+    }
+    .table-of-contents a:hover {
+      text-decoration: underline;
+    }
+    main {
+      margin-top: 30px;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      color: #333;
+      margin-top: 2em;
+    }
+    h1 {
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+    }
+    pre {
+      background: #f8f8f8;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    code {
+      background: #f0f0f0;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <nav class="table-of-contents">
+<ol>
+<li><a href="#welcome-to-my-site">Welcome to My Site</a><ol>
+<li><a href="#content-section">Content Section</a></li>
+</ol>
+</li>
+</ol>
+</nav>
+  
+  <main>
+    <h1 id="welcome-to-my-site">Welcome to My Site</h1>
+<p>This is a shared header that can be included in multiple markdown files.</p>
+<h2 id="content-section">Content Section</h2>
+<p>This page demonstrates that Apache-style includes work in markdown files.</p>
+<p><em>Footer content here</em></p>
+<p>© 2024 My Site. All rights reserved.</p>
+
+  </main>
+  
+  <footer>
+    <hr>
+    <p><em>Generated with dompile</em></p>
+  </footer>
+</body>
+</html>

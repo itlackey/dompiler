@@ -1,0 +1,80 @@
+<!-- 
+data:
+  title: "About DOM Mode"
+  description: "Learn about DOMpile's modern DOM Mode templating system"
+-->
+
+<template extends="/templates/layout.html">
+  <slot name="content">
+    <h1>About DOM Mode</h1>
+    
+    <template src="/components/hero.html" 
+              hero_title="🎯 Template Evolution"
+              hero_subtitle="From Apache SSI to Modern Web Components">
+      <slot name="hero-content">
+        <p>DOM Mode represents the next evolution in static site templating, bringing modern component architecture to the simplicity of static HTML.</p>
+      </slot>
+    </template>
+
+    <h2>📚 Core Concepts</h2>
+    
+    <div class="cards">
+      <template src="/components/card.html" card_title="Template Inheritance">
+        <slot name="card-content">
+          <p>Use <code>&lt;template extends="..."&gt;</code> to inherit from parent templates, creating powerful layout hierarchies.</p>
+        </slot>
+      </template>
+
+      <template src="/components/card.html" card_title="Component Includes">
+        <slot name="card-content">
+          <p>Include reusable components with <code>&lt;template src="..."&gt;</code> and pass data via attributes.</p>
+        </slot>
+      </template>
+
+      <template src="/components/card.html" card_title="Slot System">
+        <slot name="card-content">
+          <p>Define flexible content areas with <code>&lt;slot name="..."&gt;</code> that can be filled by child templates.</p>
+        </slot>
+      </template>
+    </div>
+
+    <h2>🔄 Comparison with Traditional Methods</h2>
+    
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <h3>Traditional Apache SSI</h3>
+      <pre><code>&lt;!--#include virtual="/includes/header.html" --&gt;</code></pre>
+      <p>✅ Simple, widely supported<br>
+         ❌ No data passing<br>
+         ❌ No content injection<br>
+         ❌ Limited composability</p>
+    </div>
+
+    <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <h3>DOM Mode</h3>
+      <pre><code>&lt;template src="/components/header.html" title="{{ page.title }}"&gt;
+  &lt;slot name="nav-extra"&gt;
+    &lt;a href="/special"&gt;Special Link&lt;/a&gt;
+  &lt;/slot&gt;
+&lt;/template&gt;</code></pre>
+      <p>✅ Data binding<br>
+         ✅ Content injection<br>
+         ✅ Component composition<br>
+         ✅ Template inheritance<br>
+         ✅ Fully static output</p>
+    </div>
+
+    <h2>🚀 Getting Started</h2>
+    
+    <ol>
+      <li><strong>Create a layout template</strong> with slots for content areas</li>
+      <li><strong>Build reusable components</strong> in your components directory</li>
+      <li><strong>Compose pages</strong> using template inheritance and component includes</li>
+      <li><strong>Build your site</strong> - DOM Mode compiles to pure HTML</li>
+    </ol>
+
+    <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <h4>💡 Pro Tip</h4>
+      <p>DOM Mode is fully compatible with traditional includes and markdown. You can migrate gradually or mix approaches as needed.</p>
+    </div>
+  </slot>
+</template>

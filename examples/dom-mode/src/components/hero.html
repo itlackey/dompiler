@@ -1,0 +1,7 @@
+<div class="hero">
+  <h2>{{ hero_title || "Welcome to DOM Mode" }}</h2>
+  <p>{{ hero_subtitle || "Modern template syntax for static site generation" }}</p>
+  <slot name="hero-content">
+    <p>This is the default hero content. Override with your own content using slots.</p>
+  </slot>
+</div>

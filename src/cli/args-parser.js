@@ -12,6 +12,8 @@ export function parseArgs(argv) {
     head: null,
     port: 3000,
     host: 'localhost',
+    prettyUrls: false,
+    baseUrl: 'https://example.com',
     help: false,
     version: false
   };
@@ -79,6 +81,17 @@ export function parseArgs(argv) {
     
     if (arg === '--host' && nextArg) {
       args.host = nextArg;
+      i++;
+      continue;
+    }
+    
+    if (arg === '--pretty-urls') {
+      args.prettyUrls = true;
+      continue;
+    }
+    
+    if (arg === '--base-url' && nextArg) {
+      args.baseUrl = nextArg;
       i++;
       continue;
     }

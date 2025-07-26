@@ -22,6 +22,12 @@ import {
   getOutputPath, 
   getFileExtension 
 } from '../utils/path-resolver.js';
+import { 
+  generateSitemap, 
+  extractPageInfo, 
+  enhanceWithFrontmatter, 
+  writeSitemap 
+} from './sitemap-generator.js';
 import { FileSystemError, BuildError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 
@@ -38,7 +44,9 @@ const DEFAULT_OPTIONS = {
   output: 'dist',
   includes: 'includes',
   head: null,
-  clean: true
+  clean: true,
+  prettyUrls: false,
+  baseUrl: 'https://example.com'
 };
 
 /**
@@ -128,6 +136,10 @@ export async function build(options = {}) {
       errors: []
     };
     
+    // Track processed content files for sitemap generation
+    const processedFiles = [];
+    const frontmatterData = new Map();
+    
     // Load layout file for markdown (if it exists)
     const layoutFile = await findLayoutFile(sourceRoot);
     let layoutContent = null;
@@ -160,19 +172,25 @@ export async function build(options = {}) {
               dependencyTracker,
               assetTracker
             );
+            processedFiles.push(filePath);
             results.processed++;
             logger.debug(`Processed HTML: ${relativePath}`);
           }
         } else if (isMarkdownFile(filePath)) {
-          // Process Markdown file
-          await processMarkdownFile(
+          // Process Markdown file and capture frontmatter
+          const frontmatter = await processMarkdownFile(
             filePath,
             sourceRoot,
             outputRoot,
             headSnippet,
             layoutContent,
-            assetTracker
+            assetTracker,
+            config.prettyUrls
           );
+          processedFiles.push(filePath);
+          if (frontmatter) {
+            frontmatterData.set(filePath, frontmatter);
+          }
           results.processed++;
           logger.debug(`Processed Markdown: ${relativePath}`);
         }
@@ -199,6 +217,17 @@ export async function build(options = {}) {
         logger.error(`Error copying asset ${filePath}: ${error.message}`);
         results.errors.push({ file: filePath, error: error.message });
       }
+    }
+    
+    // Generate sitemap.xml
+    try {
+      const pageInfo = extractPageInfo(processedFiles, sourceRoot, outputRoot, config.prettyUrls);
+      const enhancedPageInfo = enhanceWithFrontmatter(pageInfo, frontmatterData);
+      const sitemapContent = generateSitemap(enhancedPageInfo, config.baseUrl);
+      await writeSitemap(sitemapContent, outputRoot);
+    } catch (error) {
+      logger.error(`Error generating sitemap: ${error.message}`);
+      results.errors.push({ file: 'sitemap.xml', error: error.message });
     }
     
     // Build summary
@@ -287,7 +316,7 @@ export async function incrementalBuild(options = {}, changedFile = null, depende
             }
           }
           
-          await processMarkdownFile(filePath, sourceRoot, outputRoot, headSnippet, layoutContent, assets);
+          await processMarkdownFile(filePath, sourceRoot, outputRoot, headSnippet, layoutContent, assets, config.prettyUrls);
           results.processed++;
           logger.debug(`Rebuilt Markdown: ${relativePath}`);
         } else {
@@ -416,6 +445,40 @@ export async function initializeModificationCache(sourceRoot) {
 }
 
 /**
+ * Generate output path for a file, with optional pretty URL support
+ * @param {string} filePath - Source file path
+ * @param {string} sourceRoot - Source root directory  
+ * @param {string} outputRoot - Output root directory
+ * @param {boolean} prettyUrls - Whether to generate pretty URLs
+ * @returns {string} Output file path
+ */
+function getOutputPathWithPrettyUrls(filePath, sourceRoot, outputRoot, prettyUrls = false) {
+  const relativePath = path.relative(sourceRoot, filePath);
+  
+  if (prettyUrls && isMarkdownFile(filePath)) {
+    // Convert about.md → about/index.html for pretty URLs
+    const nameWithoutExt = path.basename(relativePath, path.extname(relativePath));
+    const dir = path.dirname(relativePath);
+    
+    // Special case: if the file is already named index.md, don't create nested directory
+    if (nameWithoutExt === 'index') {
+      return path.join(outputRoot, dir, 'index.html');
+    }
+    
+    // Create directory structure: about.md → about/index.html
+    return path.join(outputRoot, dir, nameWithoutExt, 'index.html');
+  }
+  
+  // For HTML files or when pretty URLs is disabled, use standard conversion
+  if (isMarkdownFile(filePath)) {
+    return path.join(outputRoot, relativePath.replace(/\.md$/i, '.html'));
+  }
+  
+  // For all other files (HTML, assets), use original logic
+  return getOutputPath(filePath, sourceRoot, outputRoot);
+}
+
+/**
  * Find layout file for markdown processing
  * @param {string} sourceRoot - Source root directory
  * @returns {Promise<string|null>} Path to layout file or null if not found
@@ -449,8 +512,10 @@ async function findLayoutFile(sourceRoot) {
  * @param {string|null} headSnippet - Head snippet to inject
  * @param {string|null} layoutContent - Layout template content
  * @param {AssetTracker} assetTracker - Asset tracker instance
+ * @param {boolean} prettyUrls - Whether to generate pretty URLs
+ * @returns {Promise<Object|null>} Frontmatter data or null
  */
-async function processMarkdownFile(filePath, sourceRoot, outputRoot, headSnippet, layoutContent, assetTracker) {
+async function processMarkdownFile(filePath, sourceRoot, outputRoot, headSnippet, layoutContent, assetTracker, prettyUrls = false) {
   // Read markdown content
   let markdownContent;
   try {
@@ -468,8 +533,11 @@ async function processMarkdownFile(filePath, sourceRoot, outputRoot, headSnippet
   // Add anchor links to headings
   const htmlWithAnchors = addAnchorLinks(html);
   
+  // Generate table of contents
+  const tableOfContents = generateTableOfContents(htmlWithAnchors);
+  
   // Wrap in layout if available
-  const metadata = { frontmatter, title, excerpt };
+  const metadata = { frontmatter, title, excerpt, tableOfContents };
   let finalContent;
   
   if (layoutContent) {
@@ -502,8 +570,8 @@ async function processMarkdownFile(filePath, sourceRoot, outputRoot, headSnippet
     assetTracker.recordAssetReferences(filePath, finalContent, sourceRoot);
   }
   
-  // Generate output path (change .md to .html)
-  const outputPath = path.join(outputRoot, path.relative(sourceRoot, filePath).replace(/\.md$/i, '.html'));
+  // Generate output path with pretty URL support
+  const outputPath = getOutputPathWithPrettyUrls(filePath, sourceRoot, outputRoot, prettyUrls);
   await ensureDirectoryExists(path.dirname(outputPath));
   
   try {
@@ -511,6 +579,9 @@ async function processMarkdownFile(filePath, sourceRoot, outputRoot, headSnippet
   } catch (error) {
     throw new FileSystemError('write', outputPath, error);
   }
+  
+  // Return frontmatter for sitemap generation
+  return frontmatter;
 }
 
 /**

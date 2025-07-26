@@ -210,7 +210,7 @@ Current implementation has successfully delivered v0.1 through v0.4 features wit
 ## 🎉 **Current Status Summary**
 
 **✅ Completed**: v0.1, v0.2, v0.3, v0.4 (95% complete)
-**🚧 In Progress**: v0.4 polish (TOC integration, pretty URLs)
+**🚧 In Progress**: v0.4 polish (pretty URLs)
 **📋 Next**: v0.5 DOM Mode planning
 **🎯 Goal**: Feature-complete v1.0 by implementing all roadmap items
 

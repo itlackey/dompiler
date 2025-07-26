@@ -40,7 +40,10 @@ describe('CLI integration', () => {
       path.join(sourceDir, 'index.html'),
       `<!DOCTYPE html>
 <html>
-<head><title>CLI Test</title></head>
+<head>
+  <title>CLI Test</title>
+  <link rel="stylesheet" href="main.css">
+</head>
 <body>
   <!--#include virtual="/includes/header.html" -->
   <main><p>Testing CLI</p></main>
