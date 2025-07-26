@@ -9,10 +9,18 @@ import { logger } from '../utils/logger.js';
 import { FileSystemError } from '../utils/errors.js';
 
 /**
- * Inject head content into HTML
- * @param {string} htmlContent - HTML content to process
- * @param {string} headSnippet - Content to inject into head
- * @returns {string} HTML with injected head content
+ * Inject head content into HTML document immediately after the opening <head> tag.
+ * Preserves existing head content like title and meta tags while adding global snippets.
+ * 
+ * @param {string} htmlContent - HTML document content to modify
+ * @param {string} headSnippet - HTML content to inject (meta tags, links, scripts, etc.)
+ * @returns {string} HTML with head snippet injected, or original HTML if no head tag found
+ * 
+ * @example
+ * const html = '<html><head><title>Page</title></head><body></body></html>';
+ * const snippet = '<meta charset="UTF-8"><link rel="stylesheet" href="style.css">';
+ * const result = injectHeadContent(html, snippet);
+ * // Returns HTML with meta and link tags injected after <head>
  */
 export function injectHeadContent(htmlContent, headSnippet) {
   if (!headSnippet || headSnippet.trim() === '') {

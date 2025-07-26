@@ -29,9 +29,36 @@ const DEFAULT_OPTIONS = {
 };
 
 /**
- * Build the static site from source files
- * @param {Object} options - Build options
- * @returns {Promise<Object>} Build results
+ * Build the complete static site from source files with include processing and head injection.
+ * Processes HTML files through the include engine, injects global head content, copies static assets,
+ * and generates dependency tracking information for development server use.
+ * 
+ * @param {Object} options - Build configuration options
+ * @param {string} [options.source='src'] - Source directory path
+ * @param {string} [options.output='dist'] - Output directory path  
+ * @param {string} [options.includes='includes'] - Include directory name
+ * @param {string} [options.head=null] - Custom head file path (overrides convention)
+ * @param {boolean} [options.clean=true] - Whether to clean output directory before build
+ * @returns {Promise<Object>} Build results with statistics and dependency tracker
+ * @returns {number} returns.processed - Number of HTML pages processed
+ * @returns {number} returns.copied - Number of static assets copied
+ * @returns {number} returns.skipped - Number of partial files skipped
+ * @returns {Array} returns.errors - Array of build errors encountered
+ * @returns {number} returns.duration - Build time in milliseconds
+ * @returns {DependencyTracker} returns.dependencyTracker - Dependency tracking instance
+ * @throws {BuildError} When source directory doesn't exist or other critical errors
+ * 
+ * @example
+ * // Basic build
+ * const result = await build({ source: 'src', output: 'dist' });
+ * console.log(`Built ${result.processed} pages in ${result.duration}ms`);
+ * 
+ * // Build with custom head file
+ * const result = await build({ 
+ *   source: 'src', 
+ *   output: 'public',
+ *   head: 'common/global-head.html'
+ * });
  */
 export async function build(options = {}) {
   const config = { ...DEFAULT_OPTIONS, ...options };
@@ -119,7 +146,8 @@ export async function build(options = {}) {
     logger.info(`Processed: ${results.processed} pages, Copied: ${results.copied} assets, Skipped: ${results.skipped} partials`);
     
     if (results.errors.length > 0) {
-      logger.warn(`Build completed with ${results.errors.length} errors`);
+      logger.error(`Build failed with ${results.errors.length} errors`);
+      throw new BuildError(`Build failed with ${results.errors.length} errors`, results.errors);
     }
     
     return {

@@ -5,6 +5,7 @@
 
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { PathTraversalError } from './errors.js';
 
 /**
  * Resolve include path based on type (file vs virtual)
@@ -15,6 +16,11 @@ import { fileURLToPath } from 'url';
  * @returns {string} Resolved absolute path
  */
 export function resolveIncludePath(type, includePath, currentFilePath, sourceRoot) {
+  // Validate input
+  if (!includePath || typeof includePath !== 'string') {
+    throw new Error('Include path must be a non-empty string');
+  }
+  
   let resolvedPath;
   
   if (type === 'file') {
@@ -22,8 +28,10 @@ export function resolveIncludePath(type, includePath, currentFilePath, sourceRoo
     const currentDir = path.dirname(currentFilePath);
     resolvedPath = path.resolve(currentDir, includePath);
   } else if (type === 'virtual') {
-    // Relative to source root, remove leading slash if present
-    const cleanPath = includePath.startsWith('/') ? includePath.slice(1) : includePath;
+    // Relative to source root, remove all leading slashes and normalize
+    let cleanPath = includePath.replace(/^\/+/, '');
+    // Normalize multiple slashes
+    cleanPath = cleanPath.replace(/\/+/g, '/');
     resolvedPath = path.resolve(sourceRoot, cleanPath);
   } else {
     throw new Error(`Invalid include type: ${type}`);
@@ -31,7 +39,7 @@ export function resolveIncludePath(type, includePath, currentFilePath, sourceRoo
   
   // Security check: ensure resolved path is within source root
   if (!isPathWithinDirectory(resolvedPath, sourceRoot)) {
-    throw new Error(`Include path escapes source directory: ${includePath}`);
+    throw new PathTraversalError(includePath, sourceRoot);
   }
   
   return resolvedPath;

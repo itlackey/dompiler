@@ -4,110 +4,152 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-This is **Vanilla Wafer**, a lightweight static site generator currently in the planning phase. The project has comprehensive documentation but **no implementation yet exists**. All source code needs to be built from scratch following the detailed specifications.
+**Vanilla Wafer** is a fully implemented, working static site generator that processes HTML files with Apache SSI-style includes. The core functionality is complete and tested, with ~80% implementation finished.
 
-## Project Architecture Overview
-
-Vanilla Wafer processes HTML files with Apache SSI-style include directives at build time, transforming templates into complete static sites. The system has two main modes:
-
-- **Build Mode**: Process HTML includes and generate static output
-- **Serve Mode**: Development server with live reload via Server-Sent Events
-
-### Core Components (To Be Implemented)
-
-1. **Include Processor**: Expands `<!--#include file="header.html" -->` directives
-2. **Head Injector**: Automatically injects common `<head>` content into all pages  
-3. **File Processor**: Manages build workflow and asset copying
-4. **Development Server**: HTTP server with live reload and file watching
-5. **CLI Interface**: Command-line tool for build and serve operations
-
-### Target Platform Support
-- Node.js 14+ (primary target with native ESM)
-- Bun compatibility 
-- Deno support via Node.js compatibility layer
-
-## Key Design Principles
-
-- **ESM-first**: Native ES modules without transpilation
-- **Minimal dependencies**: Leverage Node.js built-ins, only add chokidar for file watching
-- **Apache SSI compatibility**: Familiar `<!--#include -->` syntax
-- **Framework-free**: Pure HTML processing without templating engines
-
-## Development Setup (When Implementing)
-
-The project will be structured as:
-```
-├── package.json          # ESM project with "type": "module"
-├── bin/cli.js           # Executable entry point with shebang
-├── src/
-│   ├── cli/             # Command-line interface
-│   ├── core/            # Include processing and build logic
-│   ├── server/          # Development server and live reload
-│   └── utils/           # Shared utilities
-└── test/
-    ├── unit/            # Component tests
-    ├── integration/     # End-to-end build tests
-    └── fixtures/        # Sample sites for testing
-```
-
-## Command Structure (Planned)
+## Development Commands
 
 ```bash
-# Build static site
-vanilla-wafer build --source src --output dist
+# Install dependencies and link globally for development
+npm install && npm link
 
-# Development server  
-vanilla-wafer serve --source src --port 3000
+# Run all tests
+npm test
 
-# Options
---source, -s    # Source directory (default: src)
---includes, -i  # Includes directory for partials
---output, -o    # Output directory (default: dist)  
---head         # Custom head include file path
---port         # Development server port (default: 3000)
+# Test specific module (example)
+node --test test/unit/include-processor.test.js
+
+# Build example project
+npm run build
+
+# Start development server with live reload  
+npm run dev
+
+# Direct CLI usage (after npm link)
+vanilla-wafer build --source examples/basic/src --output dist
+vanilla-wafer serve --source examples/basic/src --port 3001
 ```
 
-## Include Processing Logic
+## Architecture Overview
 
-The core functionality centers around two include types:
-- **File includes**: `<!--#include file="relative/path.html" -->` (relative to current file)
-- **Virtual includes**: `<!--#include virtual="/absolute/path.html" -->` (relative to source root)
+Vanilla Wafer operates in two modes with a sophisticated processing pipeline:
 
-Key requirements:
-- Recursive include processing with circular dependency detection
-- Path traversal security (prevent `../` escaping source directory)
-- Dependency tracking for selective rebuilds during development
+### Build Mode Architecture
+```
+Source HTML → Include Processor → Head Injector → Static Files → Output
+     ↓              ↓                 ↓              ↓           ↓
+Dependencies → Dependency Tracker → File Processor → Assets → Complete Site
+```
 
-## Development Server Architecture  
+### Development Mode Architecture  
+```
+Initial Build → File Watcher → Selective Rebuild → SSE Broadcast → Browser Reload
+     ↓              ↓              ↓                 ↓              ↓
+Dependency Tracker → Change Analysis → Targeted Updates → Live Reload Script
+```
 
-Uses Node.js built-in HTTP module with:
-- Static file serving from output directory
-- Server-Sent Events endpoint (`/__events`) for live reload
-- Automatic script injection in HTML responses during development
-- File watching via chokidar with selective rebuild logic
+## Core Processing Flow
 
-## Testing Strategy
+### Include Processing (`src/core/include-processor.js`)
+- Regex-based SSI directive parsing: `/<!--#include\s+(virtual|file)="([^"]+)"\s*-->/gi`
+- **File includes**: `<!--#include file="header.html" -->` (relative to current file)
+- **Virtual includes**: `<!--#include virtual="/includes/nav.html" -->` (relative to source root)
+- Recursive processing with circular dependency detection using Set-based tracking
+- 10-level depth limit prevents runaway recursion
+- Security: Path traversal prevention, files must be within source tree
 
-Focus on:
-- **Include expansion**: Various directive patterns, nested includes, error cases
-- **Dependency tracking**: Change impact analysis for selective rebuilds  
-- **Cross-platform compatibility**: Node.js, Bun, Deno execution
-- **Integration**: Full build process with sample projects
+### Head Injection (`src/core/head-injector.js`)  
+- Convention-based discovery: looks for `head.html`, `_head.html` in includes/ or source root
+- CLI override: `--head custom/path.html`
+- Injection point: immediately after `<head>` opening tag
+- Preserves existing title/meta tags while adding global styles/scripts
 
-## Implementation References
+### Dependency Tracking (`src/core/dependency-tracker.js`)
+- Bidirectional mapping: `includesInPage` (page → includes) and `pagesByInclude` (include → pages)
+- Change impact analysis: when partial changes, rebuild only dependent pages
+- Handles nested dependencies: if A includes B and B includes C, change to C rebuilds pages using A
 
-- **ARCHITECTURE.md**: Comprehensive technical specification with code examples
-- **Implementation Plan PDF**: 15-page step-by-step implementation guide
-- **README.md**: User-facing documentation and examples
+## Development Server Components
 
-## Getting Started
+### File Watching (`src/server/file-watcher.js`)
+- Chokidar-based with debouncing (100ms delay)
+- Selective rebuild logic: 
+  - Main page change → rebuild that page only
+  - Partial change → rebuild all dependent pages via dependency tracker
+  - Asset change → copy file to output
+- Ignores: output directory, node_modules, .git, hidden files
 
-Since no code exists yet, begin by:
-1. Initialize package.json with ESM configuration
-2. Set up CLI entry point with executable permissions
-3. Implement core include processing logic first
-4. Add file system operations and build workflow
-5. Integrate development server and live reload
-6. Add comprehensive testing suite
+### Live Reload (`src/server/live-reload.js`)
+- Server-Sent Events on `/__events` endpoint
+- Script injection only during development (not in static build output)
+- Connection management with cleanup on client disconnect
+- Broadcasts reload reason for debugging
 
-The project is well-documented with clear architectural decisions, making implementation straightforward by following the existing specifications.
+### HTTP Server (`src/server/dev-server.js`)
+- Node.js built-in HTTP module, no external server dependencies
+- Static file serving with MIME type detection
+- Security: path traversal prevention, files must be within output directory
+- Directory listings for debugging
+- Graceful shutdown handling
+
+## Testing Architecture
+
+Using Node.js built-in test runner (Node 14+):
+- **Unit tests**: Core processing logic with temp file fixtures
+- **File fixtures**: `test/fixtures/` with cleanup in afterEach hooks
+- **38 tests passing** covering include processing, head injection, CLI parsing
+- Test isolation: each test creates/destroys its own temp directories
+
+## Code Organization Principles
+
+### Error Handling Strategy
+- Custom error classes in `src/utils/errors.js` with file context
+- Graceful degradation: missing includes become error comments in output
+- Build failures throw with descriptive messages and file locations
+
+### Security Model
+- Path resolution always validates against source/output boundaries
+- `isPathWithinDirectory()` prevents `../` escapes
+- CLI argument validation prevents injection attacks
+- File serving restricted to output directory only
+
+### ESM Module Design
+- Native ES modules throughout (`"type": "module"` in package.json)
+- No transpilation required, direct Node.js execution
+- Import paths always include `.js` extensions for compatibility
+- Cross-platform path handling via Node.js `path` module
+
+## Key Implementation Details
+
+### Performance Optimizations
+- Selective rebuilds during development based on dependency analysis
+- Debounced file watching to handle rapid changes
+- Streaming file operations, no full-site loading into memory
+- Parallel processing capability (single-threaded currently)
+
+### Logging Strategy
+- Configurable log levels via `LOG_LEVEL` environment variable
+- Context-aware messages with emoji prefixes for CLI UX
+- Debug mode shows detailed processing information
+- Error messages include file paths and suggested fixes
+
+## Extension Points
+
+The architecture supports future enhancements:
+- **Plugin system**: Processor functions can be composed/extended
+- **Asset pipeline**: File processor has hooks for transformation
+- **Template engines**: Include processor can be adapted for other syntaxes
+- **Deployment**: Build system produces standard static files
+
+## Current Limitations
+
+- Single dependency: chokidar for file watching
+- No built-in minification/optimization  
+- Full page reload only (no hot module replacement)
+- Synchronous include processing (could be parallelized)
+
+## Documentation References
+
+- `README.md`: User-facing documentation with examples
+- `docs/ARCHITECTURE.md`: Detailed technical specifications  
+- `docs/implementation-plan.md`: Complete task breakdown with status
+- `examples/basic/`: Working demonstration project

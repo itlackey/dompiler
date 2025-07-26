@@ -25,6 +25,12 @@ export function parseArgs(argv) {
       continue;
     }
     
+    // Check for unknown commands (first non-option argument)
+    if (!arg.startsWith('-') && !args.command) {
+      args.command = arg; // Set unknown command to be handled by CLI
+      continue;
+    }
+    
     // Flags
     if (arg === '--help' || arg === '-h') {
       args.help = true;

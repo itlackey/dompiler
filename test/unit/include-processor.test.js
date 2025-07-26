@@ -8,6 +8,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { processIncludes, extractIncludeDependencies, hasIncludes, parseIncludeDirective } from '../../src/core/include-processor.js';
+import { IncludeNotFoundError } from '../../src/utils/errors.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const testFixturesDir = path.join(__dirname, '../fixtures/include-processor');
@@ -80,14 +81,14 @@ describe('include-processor', () => {
       assert(!result.includes('<!--#include'));
     });
     
-    it('should handle missing include files', async () => {
+    it('should throw error for missing include files', async () => {
       const html = '<!DOCTYPE html><html><head></head><body><!--#include file="missing.html" --></body></html>';
       const filePath = path.join(testFixturesDir, 'test.html');
       
-      const result = await processIncludes(html, filePath, testFixturesDir);
-      
-      // Should contain error comment
-      assert(result.includes('<!-- ERROR:'));
+      // Should throw IncludeNotFoundError
+      await assert.rejects(async () => {
+        await processIncludes(html, filePath, testFixturesDir);
+      }, IncludeNotFoundError);
     });
     
     it('should detect circular dependencies', async () => {

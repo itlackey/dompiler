@@ -21,13 +21,24 @@ const INCLUDE_DIRECTIVE_REGEX = /<!--#include\s+(virtual|file)="([^"]+)"\s*-->/g
 const MAX_INCLUDE_DEPTH = 10;
 
 /**
- * Process all include directives in HTML content
- * @param {string} htmlContent - HTML content to process
- * @param {string} filePath - Path of the current file
- * @param {string} sourceRoot - Root source directory
- * @param {Set<string>} processedFiles - Set of files currently being processed (for cycle detection)
- * @param {number} depth - Current include depth
- * @returns {Promise<string>} Processed HTML content
+ * Process all include directives in HTML content with Apache SSI-style syntax.
+ * Supports both file includes (relative to current file) and virtual includes (relative to source root).
+ * Recursively processes nested includes with circular dependency detection and depth limiting.
+ * 
+ * @param {string} htmlContent - HTML content containing include directives to process
+ * @param {string} filePath - Absolute path of the current file being processed
+ * @param {string} sourceRoot - Absolute path to the source root directory
+ * @param {Set<string>} processedFiles - Set of file paths currently being processed (for cycle detection)
+ * @param {number} depth - Current recursion depth (max 10 levels)
+ * @returns {Promise<string>} HTML content with all include directives expanded
+ * @throws {CircularDependencyError} When circular include dependencies are detected
+ * @throws {Error} When maximum include depth is exceeded
+ * 
+ * @example
+ * // Process HTML with includes
+ * const html = '<!--#include file="header.html" --><main>Content</main>';
+ * const result = await processIncludes(html, '/src/index.html', '/src');
+ * // Returns HTML with header.html content inserted
  */
 export async function processIncludes(
   htmlContent, 
@@ -95,17 +106,12 @@ export async function processIncludes(
       processedContent = processedContent.replace(fullMatch, processedInclude);
       
     } catch (error) {
-      if (error instanceof CircularDependencyError) {
-        throw error; // Re-throw circular dependency errors
-      }
-      
       // Log error and provide helpful context
       logger.error(`Failed to process include: ${includePath} in ${filePath}`);
       logger.error(error.message);
       
-      // Replace with error comment in output for debugging
-      const errorComment = `<!-- ERROR: ${error.message} -->`;
-      processedContent = processedContent.replace(fullMatch, errorComment);
+      // Re-throw all errors to fail the build
+      throw error;
     }
   }
   

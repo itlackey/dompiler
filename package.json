@@ -12,8 +12,8 @@
   },
   "scripts": {
     "test": "node --test test/**/*.test.js",
-    "dev": "node bin/cli.js serve --source examples/basic",
-    "build": "node bin/cli.js build --source examples/basic --output dist"
+    "dev": "node bin/cli.js serve --source examples/basic/src",
+    "build": "node bin/cli.js build --source examples/basic/src --output dist"
   },
   "keywords": [
     "static-site-generator",
@@ -42,7 +42,6 @@
   "files": [
     "bin/",
     "src/",
-    "README.md",
-    "CLAUDE.md"
+    "README.md"
   ]
 }

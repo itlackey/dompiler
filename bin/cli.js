@@ -17,7 +17,12 @@ async function main() {
       process.exit(0);
     }
     
-    if (args.help || !args.command) {
+    if (args.help) {
+      showHelp();
+      process.exit(0);
+    }
+    
+    if (!args.command) {
       showHelp();
       process.exit(0);
     }
