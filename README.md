@@ -65,21 +65,52 @@ Use Apache SSI syntax to include partials:
 Place common meta tags, CSS, and scripts in `head.html` and they'll be automatically injected into every page's `<head>` section.
 
 ### Live Development
-Run `vanilla-wafer serve` to start a development server that:
-- Watches for file changes
-- Rebuilds only affected pages
-- Automatically refreshes your browser
-- Serves your static assets
+Use `vanilla-wafer watch` to automatically rebuild your site when files change. For live reloading in the browser, combine with your favorite development server like `live-server`:
+
+```bash
+# Terminal 1: Watch and rebuild on changes
+vanilla-wafer watch --source src --output dist
+
+# Terminal 2: Serve with live reload
+npx live-server dist --port=3000 --watch=dist
+```
 
 ## 📖 Documentation
 
-- **Build Command**: `vanilla-wafer build [options]`
-- **Serve Command**: `vanilla-wafer serve [options]`
-- **Options**:
-  - `--source, -s`: Source directory (default: current directory)
-  - `--output, -o`: Output directory (default: `dist`)
-  - `--head`: Custom head include file path
-  - `--port`: Development server port (default: 3000)
+### Commands
+
+- **`vanilla-wafer build [options]`** - Build your static site
+- **`vanilla-wafer watch [options]`** - Watch files and rebuild on changes
+
+### Options
+
+- `--source, -s`: Source directory (default: `src`)
+- `--output, -o`: Output directory (default: `dist`)
+- `--includes, -i`: Includes directory name (default: `includes`)
+- `--head`: Custom head include file path
+- `--help, -h`: Show help message
+- `--version, -v`: Show version
+
+### Live Development Setup
+
+For the best development experience with automatic browser refresh:
+
+```bash
+# Install live-server globally or use npx
+npm install -g live-server
+
+# Option 1: Use two terminals
+vanilla-wafer watch --source src --output dist
+live-server dist --port=3000
+
+# Option 2: Use npm scripts in package.json
+{
+  "scripts": {
+    "dev": "vanilla-wafer watch --source src --output dist & live-server dist --port=3000 --wait=500",
+    "build": "vanilla-wafer build --source src --output dist"
+  }
+}
+```
 
 ## 🌟 Why Vanilla Wafer?
 
@@ -93,8 +124,8 @@ Perfect for:
 ## 🔗 Cross-Platform Support
 
 - **Node.js** 14+ (native ESM support)
-- **Bun**: `bun run vanilla-wafer serve`
-- **Deno**: `deno run --allow-read --allow-write --allow-net npm:vanilla-wafer`
+- **Bun**: `bun run vanilla-wafer watch`
+- **Deno**: `deno run --allow-read --allow-write npm:vanilla-wafer`
 
 ---
 

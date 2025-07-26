@@ -12,7 +12,7 @@
   },
   "scripts": {
     "test": "node --test test/**/*.test.js",
-    "dev": "node bin/cli.js serve --source examples/basic/src",
+    "dev": "node bin/cli.js watch --source examples/basic/src --output dist",
     "build": "node bin/cli.js build --source examples/basic/src --output dist"
   },
   "keywords": [
@@ -37,6 +37,9 @@
   "homepage": "https://github.com/username/vanilla-wafer#readme",
   "dependencies": {
     "chokidar": "^3.5.3"
+  },
+  "optionalDependencies": {
+    "live-server": "^1.2.2"
   },
   "devDependencies": {},
   "files": [

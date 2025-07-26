@@ -10,7 +10,6 @@ export function parseArgs(argv) {
     output: 'dist', 
     includes: 'includes',
     head: null,
-    port: 3000,
     help: false,
     version: false
   };
@@ -20,7 +19,7 @@ export function parseArgs(argv) {
     const nextArg = argv[i + 1];
     
     // Commands
-    if (arg === 'build' || arg === 'serve') {
+    if (arg === 'build' || arg === 'watch') {
       args.command = arg;
       continue;
     }
@@ -67,15 +66,6 @@ export function parseArgs(argv) {
       continue;
     }
     
-    if ((arg === '--port' || arg === '-p') && nextArg) {
-      const port = parseInt(nextArg, 10);
-      if (isNaN(port) || port < 1 || port > 65535) {
-        throw new Error(`Invalid port number: ${nextArg}`);
-      }
-      args.port = port;
-      i++;
-      continue;
-    }
     
     // Unknown arguments
     if (arg.startsWith('-')) {

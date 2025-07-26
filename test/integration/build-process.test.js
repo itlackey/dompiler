@@ -206,8 +206,9 @@ describe('build-process integration', () => {
   
   it('should fail build when includes are missing', async () => {
     // Create a file with missing include
+    const brokenFilePath = path.join(sourceDir, 'broken.html');
     await fs.writeFile(
-      path.join(sourceDir, 'broken.html'),
+      brokenFilePath,
       '<!DOCTYPE html><html><head></head><body><!--#include file="missing.html" --></body></html>'
     );
     
@@ -219,6 +220,13 @@ describe('build-process integration', () => {
         includes: 'includes'
       });
     }, /Build failed with .* errors/);
+    
+    // Clean up the broken file immediately after test
+    try {
+      await fs.unlink(brokenFilePath);
+    } catch (error) {
+      // Ignore if file doesn't exist
+    }
   });
   
   it('should clean output directory before build', async () => {

@@ -12,9 +12,9 @@ describe('parseArgs', () => {
     assert.strictEqual(args.command, 'build');
   });
   
-  it('should parse serve command', () => {
-    const args = parseArgs(['serve']);
-    assert.strictEqual(args.command, 'serve');
+  it('should parse watch command', () => {
+    const args = parseArgs(['watch']);
+    assert.strictEqual(args.command, 'watch');
   });
   
   it('should handle help flag', () => {
@@ -37,22 +37,10 @@ describe('parseArgs', () => {
     assert.strictEqual(args.output, 'my-dist');
   });
   
-  it('should parse port option', () => {
-    const args = parseArgs(['serve', '--port', '8080']);
-    assert.strictEqual(args.port, 8080);
-  });
-  
   it('should use default values', () => {
     const args = parseArgs(['build']);
     assert.strictEqual(args.source, 'src');
     assert.strictEqual(args.output, 'dist');
-    assert.strictEqual(args.port, 3000);
-  });
-  
-  it('should throw error for invalid port', () => {
-    assert.throws(() => {
-      parseArgs(['serve', '--port', 'invalid']);
-    }, /Invalid port number/);
   });
   
   it('should throw error for unknown option', () => {

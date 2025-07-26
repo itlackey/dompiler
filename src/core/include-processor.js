@@ -45,7 +45,8 @@ export async function processIncludes(
   filePath, 
   sourceRoot, 
   processedFiles = new Set(),
-  depth = 0
+  depth = 0,
+  dependencyTracker = null
 ) {
   // Prevent excessive recursion
   if (depth > MAX_INCLUDE_DEPTH) {
@@ -93,13 +94,19 @@ export async function processIncludes(
         throw new FileSystemError('read', resolvedPath, error);
       }
       
+      // Track dependencies for this include file if tracker is provided
+      if (dependencyTracker) {
+        dependencyTracker.analyzePage(resolvedPath, includeContent, sourceRoot);
+      }
+      
       // Recursively process nested includes
       const processedInclude = await processIncludes(
         includeContent,
         resolvedPath,
         sourceRoot,
         newProcessedFiles,
-        depth + 1
+        depth + 1,
+        dependencyTracker
       );
       
       // Replace the directive with processed content

@@ -2,7 +2,7 @@
 
 import { parseArgs } from '../src/cli/args-parser.js';
 import { build } from '../src/core/file-processor.js';
-import { serve } from '../src/server/dev-server.js';
+import { watch } from '../src/core/file-watcher.js';
 import { logger } from '../src/utils/logger.js';
 
 const VERSION = '0.1.0';
@@ -35,9 +35,9 @@ async function main() {
         logger.info('Build completed successfully!');
         break;
         
-      case 'serve':
-        logger.info('Starting development server...');
-        await serve(args);
+      case 'watch':
+        logger.info('Starting file watcher...');
+        await watch(args);
         break;
         
       default:
@@ -62,20 +62,19 @@ Usage: vanilla-wafer <command> [options]
 
 Commands:
   build     Build static site from source files
-  serve     Start development server with live reload
+  watch     Watch files and rebuild on changes
 
 Options:
   --source, -s    Source directory (default: src)
   --output, -o    Output directory (default: dist)
   --includes, -i  Includes directory (default: includes)
   --head          Custom head include file path
-  --port, -p      Development server port (default: 3000)
   --help, -h      Show this help message
   --version, -v   Show version number
 
 Examples:
   vanilla-wafer build --source src --output dist
-  vanilla-wafer serve --source src --port 8080
+  vanilla-wafer watch --source src --output dist
   vanilla-wafer build --head common/head.html
 `);
 }

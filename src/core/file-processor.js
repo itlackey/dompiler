@@ -183,7 +183,7 @@ async function processHtmlFile(filePath, sourceRoot, outputRoot, headSnippet, de
   dependencyTracker.analyzePage(filePath, htmlContent, sourceRoot);
   
   // Process includes
-  const processedContent = await processIncludes(htmlContent, filePath, sourceRoot);
+  const processedContent = await processIncludes(htmlContent, filePath, sourceRoot, new Set(), 0, dependencyTracker);
   
   // Inject head content
   const finalContent = headSnippet ? 

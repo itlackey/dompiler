@@ -75,7 +75,7 @@ describe('CLI integration', () => {
     assert(result.stdout.includes('Usage: vanilla-wafer'));
     assert(result.stdout.includes('Commands:'));
     assert(result.stdout.includes('build'));
-    assert(result.stdout.includes('serve'));
+    assert(result.stdout.includes('watch'));
   });
   
   it('should show help when no command provided', async () => {
@@ -136,12 +136,12 @@ describe('CLI integration', () => {
   
   it('should validate CLI arguments', async () => {
     const result = await runCLI([
-      'serve',
-      '--port', 'invalid'
+      'build',
+      '--unknown-option'
     ]);
     
     assert.strictEqual(result.exitCode, 1);
-    assert(result.stderr.includes('Invalid port number'));
+    assert(result.stderr.includes('Unknown option'));
   });
   
   it('should handle unknown commands', async () => {
@@ -193,52 +193,7 @@ describe('CLI integration', () => {
     assert(indexContent.includes('<meta name="custom" content="test">'));
   });
   
-  it('should serve with proper options', async () => {
-    // Start serve command with timeout to prevent hanging
-    const serveProcess = spawn('node', [
-      cliPath,
-      'serve',
-      '--source', sourceDir,
-      '--port', '3003'
-    ], {
-      stdio: 'pipe'
-    });
-    
-    let stdout = '';
-    let stderr = '';
-    
-    serveProcess.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-    
-    serveProcess.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-    
-    // Wait for server to start
-    await new Promise((resolve) => {
-      const checkStarted = () => {
-        if (stdout.includes('Development server running')) {
-          resolve();
-        } else {
-          setTimeout(checkStarted, 100);
-        }
-      };
-      checkStarted();
-    });
-    
-    // Verify server started
-    assert(stdout.includes('Development server running'));
-    assert(stdout.includes('http://localhost:3003'));
-    
-    // Clean shutdown
-    serveProcess.kill('SIGTERM');
-    
-    // Wait for shutdown
-    await new Promise((resolve) => {
-      serveProcess.on('exit', resolve);
-    });
-  });
+ 
 });
 
 /**
@@ -262,22 +217,43 @@ function runCLI(args, options = {}) {
       stderr += data.toString();
     });
     
+    let resolved = false;
+    
     child.on('close', (exitCode) => {
-      resolve({
-        exitCode,
-        stdout,
-        stderr
-      });
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timeoutId);
+        resolve({
+          exitCode,
+          stdout,
+          stderr
+        });
+      }
+    });
+    
+    child.on('error', (error) => {
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timeoutId);
+        resolve({
+          exitCode: -1,
+          stdout,
+          stderr: stderr + '\nProcess error: ' + error.message
+        });
+      }
     });
     
     // Prevent hanging tests
-    setTimeout(() => {
-      child.kill('SIGTERM');
-      resolve({
-        exitCode: -1,
-        stdout,
-        stderr: stderr + '\nTest timeout'
-      });
+    const timeoutId = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        child.kill('SIGTERM');
+        resolve({
+          exitCode: -1,
+          stdout,
+          stderr: stderr + '\nTest timeout'
+        });
+      }
     }, 10000);
   });
 }
