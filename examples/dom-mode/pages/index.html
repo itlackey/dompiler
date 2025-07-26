@@ -1,0 +1,32 @@
+<body data-layout="/layouts/blog.html">
+  <template data-slot="title">Welcome to DOM Mode</template>
+  <template data-slot="header">
+    <h1>🧱 DOMpile DOM Mode</h1>
+    <p>Modern templating with pure HTML</p>
+  </template>
+
+  <h2>Hello!</h2>
+  <p>This is a blog post rendered with the DOMpile DOM Mode layout engine. This content goes into the unnamed slot.</p>
+
+  <include src="/components/alert.html"
+           data-title="Note"
+           data-message="This site uses 100% declarative HTML." />
+
+  <h3>Components Example</h3>
+  <p>Here are some reusable components:</p>
+
+  <include src="/components/card.html"
+           data-title="🎯 Features"
+           data-content="DOM Mode supports layouts, components, and token replacement." />
+
+  <include src="/components/card.html"
+           data-title="⚡ Performance"
+           data-content="All processing happens at build time - zero runtime JavaScript needed." />
+
+  <include src="/components/navigation.html" />
+
+  <template data-slot="footer">
+    <p>© 2025 - Built with DOMpile DOM Mode</p>
+    <p><a href="https://github.com/yourusername/dompile">View on GitHub</a></p>
+  </template>
+</body>

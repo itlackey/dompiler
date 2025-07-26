@@ -1,116 +1,135 @@
-# 🎯 DOM Mode Example
+# 🧱 DOM Mode Example
 
-This example demonstrates **DOMpile's DOM Mode** - a modern templating system that brings component-based architecture to static site generation.
+This example demonstrates **DOMpile's DOM Mode** - a modern templating system that uses pure HTML with minimal custom elements.
 
-## 🚀 Features Showcased
+## 🎯 Design Principles
 
-- **Template Inheritance**: Use `<template extends="...">` for layout hierarchies
-- **Component Includes**: Reusable components with `<template src="...">`
-- **Slot System**: Flexible content injection with `<slot name="...">`
-- **Data Binding**: Pass data via attributes and frontmatter with `{{ variable }}`
-- **Fallback Support**: Default values with `{{ variable || "default" }}`
+- **HTML-centric**: No templating language, just HTML
+- **Single custom element**: Only `<include />` is introduced  
+- **No wrappers**: Pages and components are just HTML
+- **Minimal configuration**: Layouts are inferred by convention
+- **Pure build-time**: No runtime JavaScript or dynamic templating
 
 ## 📁 Project Structure
 
 ```
-src/
-├── templates/
-│   └── layout.html          # Main page layout with slots
+examples/dom-mode/
+├── pages/
+│   ├── index.html           # Homepage with blog layout
+│   └── about.html           # About page with default layout
 ├── components/
-│   ├── header.html          # Navigation header component
-│   ├── footer.html          # Site footer component  
-│   ├── hero.html            # Hero section component
-│   └── card.html            # Reusable card component
-└── pages/
-    ├── index.html           # Homepage using DOM Mode
-    └── about.html           # About page demonstrating concepts
+│   ├── alert.html           # Alert component with token replacement
+│   ├── card.html            # Card component  
+│   └── navigation.html      # Navigation component
+├── layouts/
+│   ├── default.html         # Default page layout
+│   └── blog.html            # Blog-specific layout
+├── styles/
+│   └── site.css             # Global styles
+└── dist/                    # Generated output
+```
+
+## 🧩 Key Features Demonstrated
+
+### 1. Layout System
+
+Pages specify layouts using `data-layout`:
+
+```html
+<body data-layout="/layouts/blog.html">
+  <!-- Page content -->
+</body>
+```
+
+### 2. Slot System
+
+Named slots in layouts:
+```html
+<!-- In layout -->
+<title><slot name="title">Default Title</slot></title>
+<main><slot></slot></main> <!-- unnamed slot -->
+```
+
+Content for slots:
+```html
+<!-- In page -->
+<template data-slot="title">My Page Title</template>
+<!-- Content outside templates goes to unnamed slot -->
+<h1>Main Content</h1>
+```
+
+### 3. Component Inclusion
+
+Include components with data binding:
+```html
+<include src="/components/alert.html"
+         data-title="Warning"
+         data-message="This is important!" />
+```
+
+### 4. Token Replacement
+
+Components use `data-token` for replaceable content:
+```html
+<!-- In component -->
+<strong data-token="title">Default Title</strong>
+<p data-token="message">Default message</p>
 ```
 
 ## 🔧 Building This Example
 
-**Note**: DOM Mode is a planned feature for DOMpile v0.5. This example shows the intended syntax and structure.
-
 ```bash
-# When DOM Mode is implemented:
-dompile build --source examples/dom-mode/src --output examples/dom-mode/dist --dom-mode
+# Build the DOM mode example
+dompile build --source examples/dom-mode/pages --output examples/dom-mode/dist
 
-# For now, this serves as a specification and design reference
+# The build process will:
+# 1. Detect DOM mode elements in pages
+# 2. Apply layouts with slot system
+# 3. Process component includes with token replacement
+# 4. Move component styles to <head> (deduplicated)
+# 5. Move component scripts to end of <body> (deduplicated)
 ```
 
-## 🎨 Key Concepts Demonstrated
+## ✨ Expected Output
 
-### 1. Template Inheritance
+The `pages/index.html` file will be processed into a complete HTML document:
 
-```html
-<!-- pages/index.html -->
-<template extends="/templates/layout.html">
-  <slot name="content">
-    <!-- Page-specific content goes here -->
-  </slot>
-</template>
-```
+- Layout `layouts/blog.html` provides the structure
+- Named slots (`title`, `header`, `footer`) filled from `<template data-slot="...">`
+- Default content goes into the unnamed `<slot></slot>`
+- `<include>` elements replaced with component content
+- `data-token` attributes replaced with values from `data-*` attributes
+- Component styles moved to `<head>` and deduplicated
+- Component scripts moved to end of `<body>` and deduplicated
 
-### 2. Component with Data Binding
+## 🆚 Comparison with Traditional SSI
 
-```html
-<!-- Using a component with custom data -->
-<template src="/components/card.html" 
-          card_title="My Title"
-          card_type="feature">
-  <slot name="card-content">
-    <p>Custom content for this card instance</p>
-  </slot>
-</template>
-```
+| Feature | Traditional SSI | DOM Mode |
+|---------|----------------|----------|
+| **Includes** | `<!--#include virtual="/path" -->` | `<include src="/path" />` |
+| **Data Passing** | ❌ Not supported | ✅ `data-title="value"` |
+| **Layouts** | ❌ Manual | ✅ `data-layout` + slots |
+| **Components** | ❌ Static only | ✅ Token replacement |
+| **Scoped Styles** | ❌ Global only | ✅ Component styles moved to head |
 
-### 3. Frontmatter Integration
+## 🎨 Component Architecture
 
-```html
-<!-- 
-data:
-  title: "Page Title"
-  description: "Page description"
-  hero_title: "Custom Hero"
--->
+Components are self-contained HTML files that can include:
 
-<!-- Use frontmatter data in templates -->
-<h1>{{ title }}</h1>
-<meta name="description" content="{{ description }}">
-```
+- **Styles**: `<style>` tags moved to document head
+- **Scripts**: `<script>` tags moved to end of body  
+- **Markup**: HTML content with `data-token` placeholders
+- **Token replacement**: `data-token="field"` replaced with `data-field` values
 
-## 🆚 Comparison with Current Syntax
-
-| Feature | Current (v0.4) | DOM Mode (v0.5) |
-|---------|----------------|-----------------|
-| **Includes** | `<!--#include virtual="/path" -->` | `<template src="/path">` |
-| **Data Passing** | ❌ Not supported | ✅ `<template src="..." title="value">` |
-| **Content Injection** | ❌ Not supported | ✅ `<slot name="content">` |
-| **Layout System** | ⚠️ Markdown only | ✅ Any HTML template |
-| **Composition** | ❌ Limited | ✅ Full component composition |
-
-## 🎯 Benefits
+## 🚀 Benefits
 
 - **🧩 Modular**: Build sites from reusable components
-- **🎨 Flexible**: Mix with traditional includes and markdown
-- **⚡ Fast**: Compiles to pure HTML - no client-side templating
+- **🎨 Flexible**: Mix layouts, components, and traditional includes
+- **⚡ Fast**: All processing at build time, pure HTML output
 - **🔧 Maintainable**: Component-based architecture scales well
 - **📱 Modern**: Web standards-inspired syntax
-
-## 🔮 Implementation Status
-
-**Status**: 📋 Planned for v0.5
-
-This example serves as a **specification and design document** for the upcoming DOM Mode feature. The syntax and structure shown here represent the intended implementation.
-
-## 🤝 Contributing
-
-If you're interested in helping implement DOM Mode:
-
-1. Review this example for syntax and feature completeness
-2. Provide feedback on the proposed API design
-3. Help with implementation planning and architecture
-4. Contribute to the DOM processor and template engine
+- **🎯 Focused**: Only one new element to learn (`<include>`)
 
 ---
 
-*This example demonstrates the future of DOMpile templating. Stay tuned for DOM Mode in v0.5!*
+*This example showcases the full power of DOMpile's DOM Mode - a modern approach to static site generation with pure HTML.*

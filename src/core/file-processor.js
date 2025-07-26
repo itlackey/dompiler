@@ -28,6 +28,11 @@ import {
   enhanceWithFrontmatter, 
   writeSitemap 
 } from './sitemap-generator.js';
+import { 
+  processDOMMode, 
+  shouldUseDOMMode, 
+  getDOMConfig 
+} from './dom-processor.js';
 import { FileSystemError, BuildError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 
@@ -170,7 +175,8 @@ export async function build(options = {}) {
               outputRoot, 
               headSnippet,
               dependencyTracker,
-              assetTracker
+              assetTracker,
+              config
             );
             processedFiles.push(filePath);
             results.processed++;
@@ -300,7 +306,7 @@ export async function incrementalBuild(options = {}, changedFile = null, depende
         
         if (isHtmlFile(filePath)) {
           if (!isPartialFile(filePath, config.includes)) {
-            await processHtmlFile(filePath, sourceRoot, outputRoot, headSnippet, tracker, assets);
+            await processHtmlFile(filePath, sourceRoot, outputRoot, headSnippet, tracker, assets, config);
             results.processed++;
             logger.debug(`Rebuilt HTML: ${relativePath}`);
           }
@@ -593,7 +599,7 @@ async function processMarkdownFile(filePath, sourceRoot, outputRoot, headSnippet
  * @param {DependencyTracker} dependencyTracker - Dependency tracker instance
  * @param {AssetTracker} assetTracker - Asset tracker instance
  */
-async function processHtmlFile(filePath, sourceRoot, outputRoot, headSnippet, dependencyTracker, assetTracker) {
+async function processHtmlFile(filePath, sourceRoot, outputRoot, headSnippet, dependencyTracker, assetTracker, config = {}) {
   // Read HTML content
   let htmlContent;
   try {
@@ -602,20 +608,38 @@ async function processHtmlFile(filePath, sourceRoot, outputRoot, headSnippet, de
     throw new FileSystemError('read', filePath, error);
   }
   
-  // Track dependencies before processing
-  dependencyTracker.analyzePage(filePath, htmlContent, sourceRoot);
+  let processedContent;
   
-  // Process includes
-  const processedContent = await processIncludes(htmlContent, filePath, sourceRoot, new Set(), 0, dependencyTracker);
-  
-  // Inject head content
-  const finalContent = headSnippet ? 
-    injectHeadContent(processedContent, headSnippet) : 
-    processedContent;
+  // Check if file should use DOM mode
+  if (shouldUseDOMMode(htmlContent)) {
+    logger.debug(`Using DOM mode for: ${path.relative(sourceRoot, filePath)}`);
+    
+    // Use DOM mode processor
+    const domConfig = getDOMConfig(config);
+    processedContent = await processDOMMode(htmlContent, filePath, sourceRoot, domConfig);
+    
+    // Inject head content if provided (DOM mode might have already handled head)
+    if (headSnippet && !processedContent.includes('</head>')) {
+      processedContent = injectHeadContent(processedContent, headSnippet);
+    }
+  } else {
+    logger.debug(`Using traditional SSI mode for: ${path.relative(sourceRoot, filePath)}`);
+    
+    // Track dependencies before processing (traditional mode only)
+    dependencyTracker.analyzePage(filePath, htmlContent, sourceRoot);
+    
+    // Process traditional includes
+    processedContent = await processIncludes(htmlContent, filePath, sourceRoot, new Set(), 0, dependencyTracker);
+    
+    // Inject head content
+    processedContent = headSnippet ? 
+      injectHeadContent(processedContent, headSnippet) : 
+      processedContent;
+  }
   
   // Track asset references in the final content
   if (assetTracker) {
-    assetTracker.recordAssetReferences(filePath, finalContent, sourceRoot);
+    assetTracker.recordAssetReferences(filePath, processedContent, sourceRoot);
   }
   
   // Write to output
@@ -623,7 +647,7 @@ async function processHtmlFile(filePath, sourceRoot, outputRoot, headSnippet, de
   await ensureDirectoryExists(path.dirname(outputPath));
   
   try {
-    await fs.writeFile(outputPath, finalContent, 'utf-8');
+    await fs.writeFile(outputPath, processedContent, 'utf-8');
   } catch (error) {
     throw new FileSystemError('write', outputPath, error);
   }

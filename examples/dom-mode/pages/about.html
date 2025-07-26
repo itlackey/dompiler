@@ -1,0 +1,40 @@
+<div data-layout="/layouts/default.html">
+  <template data-slot="title">About DOM Mode</template>
+  <template data-slot="header">
+    <h1>About DOM Mode</h1>
+    <include src="/components/navigation.html" />
+  </template>
+
+  <h2>What is DOM Mode?</h2>
+  <p>DOM Mode is a modern templating system for DOMpile that uses pure HTML with minimal custom elements.</p>
+
+  <include src="/components/alert.html"
+           data-title="Modern Approach"
+           data-message="No templating language to learn - just HTML with slots and includes!" />
+
+  <h3>Key Features</h3>
+  
+  <include src="/components/card.html"
+           data-title="🧩 Components"
+           data-content="Reusable HTML components with token replacement using data-token attributes." />
+
+  <include src="/components/card.html"
+           data-title="🎯 Layouts"
+           data-content="Layout system with named and unnamed slots for flexible page composition." />
+
+  <include src="/components/card.html"
+           data-title="🔧 Zero Config"
+           data-content="Conventional file structure means no configuration files needed." />
+
+  <h3>How It Works</h3>
+  <ol>
+    <li>Pages specify layouts with <code>data-layout</code></li>
+    <li>Content goes into slots using <code>&lt;template data-slot="name"&gt;</code></li>
+    <li>Components are included with <code>&lt;include src="..." /&gt;</code></li>
+    <li>Token replacement happens with <code>data-token</code> attributes</li>
+  </ol>
+
+  <template data-slot="footer">
+    <p>Learn more about <a href="/">DOM Mode</a></p>
+  </template>
+</div>
