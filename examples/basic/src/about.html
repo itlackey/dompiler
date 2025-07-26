@@ -1,22 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>About - DOMpile Demo</title>
+  <title>About - DOMpile</title>
 </head>
 <body>
   <!--#include virtual="/includes/header.html" -->
   
-  <main>
-    <h2>About DOMpile</h2>
-    <p>DOMpile is a lightweight static site generator that brings the power of server-side includes to your development workflow.</p>
-    <p>Key features:</p>
-    <ul>
-      <li>Framework-free HTML processing</li>
-      <li>Apache SSI-compatible syntax</li>
-      <li>Live development server</li>
-      <li>Cross-platform compatibility</li>
-    </ul>
-  </main>
+
+
+  <section data-augmented-ui="tl-clip tr-clip bl-round br-scoop border" style="padding:2rem;">
+    <h1>DomPile</h1>
+    <p><em>Peaceful rebellion through simplicity.</em></p>
+  </section>
+
+  <section>
+    <h2>Our Purpose</h2>
+    <p>DomPile is a minimalist CLI tool that empowers developers to build static HTML pages using includes and head
+      injection—no JavaScript frameworks or complex build systems required.</p>
+    <div data-augmented-ui="r-scoop b-clip both" style="background:#fcffeb; padding:1rem; margin:1rem 0;">
+      <strong>Manifesto:</strong><br>
+      Reclaim the DOM. Pile your includes, not your dependencies.
+    </div>
+    <p>Inspired in part by early web tools like the <a href="https://en.wikipedia.org/wiki/Dogpile" target="_blank"
+        rel="noopener noreferrer">Dogpile</a> search engine, DomPile carries forward the spirit of peaceful
+      aggregation—only here, you assemble your pages from HTML bits with clarity and intention.</p>
+  </section>
+
+  <section>
+    <h2>The Principles Behind DomPile</h2>
+    <div class="features">
+      <div class="card" data-augmented-ui="tl-clip br-round">
+        <h3>Simplicity</h3>
+        <p>Just HTML includes and head injection—no runtime complexity.</p>
+      </div>
+      <div class="card" data-augmented-ui="tr-clip bl-clip">
+        <h3>Peaceful Assembly</h3>
+        <p>Your <em>right</em> to assemble pages bit-by-bit, calmly and predictably.</p>
+      </div>
+      <div class="card" data-augmented-ui="r-clip b-clip both">
+        <h3>Modern Standards</h3>
+        <p>Native ESM support; works on Node, Bun, Deno; supports build & serve, dry‑run, verbose modes.</p>
+      </div>
+      <div class="card" data-augmented-ui="bl-clip tr-scoop">
+        <h3>Eco‑Tech Aesthetic</h3>
+        <p>Solarpunk-inspired visuals powered by Augmented‑UI CSS for calm futurism.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How It Works</h2>
+    <pre class="cli" data-augmented-ui="border bl-clip br-clip tr-round">
+$ dompile build
+Processing: index.html → dist/index.html
+Injecting includes into head…
+Build complete in 112 ms
+  </pre>
+    <p>Run <code>dompile build --input src --output dist</code> to generate your site. Includes are resolved
+      recursively, head injections applied, and output written to <code>dist/</code>. Use <code>dompile serve</code> for
+      live preview and incremental rebuild.</p>
+  </section>
+
+  <section>
+    <h2>Legacy of Aggregation</h2>
+    <p>Dogpile pioneered the art of peaceful aggregation in web search—querying multiple engines and presenting clean,
+      unified results from diverse sources :contentReference[oaicite:1]{index=1}.
+      DomPile reimagines that ethos—assembling HTML bits into coherent pages, but you remain in full control.</p>
+  </section>
+
+  <section style="text-align:center; margin:3rem 0;">
+    <a href="index.html" class="btn" data-augmented-ui="tl-round tr-round bl-clip br-clip border">Back to Home</a>
+  </section>
+
   
   <!--#include virtual="/includes/footer.html" -->
 </body>

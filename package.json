@@ -12,7 +12,9 @@
   },
   "scripts": {
     "test": "node --test test/**/*.test.js",
-    "example": "node bin/cli.js watch --source examples/basic/src --output  examples/basic/dist & live-server  examples/basic/dist --port=3000 --wait=500",
+    "watch": "node bin/cli.js watch --source examples/basic/src --output examples/basic/dist",
+    "serve": "npx live-server examples/basic/dist --port=3000 --wait=500",  
+    "example": "npm run build && npm run serve",
     "build": "node bin/cli.js build --source examples/basic/src --output  examples/basic/dist"
   },
   "keywords": [

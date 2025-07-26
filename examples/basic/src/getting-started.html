@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>DomPile - Getting Started</title>
+</head>
+
+<body>
+    <!--#include virtual="/includes/header.html" -->
+    <main>
+        <section data-augmented-ui="tl-clip tr-round bl-round br-clip border" style="padding:2rem;">
+            <h1>Getting Started with DomPile</h1>
+            <p>Start building static HTML pages the peaceful, minimalist way.</p>
+        </section>
+
+        <section>
+            <h2>Install</h2>
+            <p>Use it via <code>npx</code> or install globally:</p>
+            <pre data-augmented-ui="border bl-clip br-clip">npm install -g dompile</pre>
+        </section>
+
+        <section>
+            <h2>Quick Build</h2>
+            <p>Create your project structure:</p>
+            <pre data-augmented-ui="border bl-clip br-clip">
+/src
+  index.html
+  header.html
+  footer.html
+    </pre>
+            <p>Then:</p>
+            <pre data-augmented-ui="border bl-clip br-clip">
+$ dompile build --input src --output dist
+    </pre>
+            <p>Outputs in <code>dist/</code>, includes resolved recursively, head injections applied.</p>
+        </section>
+
+        <section>
+            <h2>Preview Mode</h2>
+            <p>Start local server with live rebuild & reload:</p>
+            <pre data-augmented-ui="border bl-clip br-clip">
+$ dompile serve --input src --output dist
+    </pre>
+        </section>
+
+        <section>
+            <h2>Options</h2>
+            <ul data-augmented-ui="border bl-clip tr-clip">
+                <li><strong>--dry-run</strong> show what would change without writing files</li>
+                <li><strong>--verbose</strong> detailed output of includes and processing</li>
+                <li><strong>--includes-dir</strong> specify base directory for include files</li>
+            </ul>
+        </section>
+
+        <section style="margin:2rem 0;">
+            <h2>Why DomPile?</h2>
+            <p>Inspired by early web tools like <a href="https://en.wikipedia.org/wiki/Dogpile">Dogpile</a>—which
+                gathered search results from many engines into one clean interface—DomPile gathers HTML bits into a
+                unified static page, leaving control to the developer, free from framework complexity.</p>
+        </section>
+
+        <section style="text-align:center; margin:2rem 0;">
+            <a href="index.html" class="btn" data-augmented-ui="tl-round tr-round bl-clip br-clip">Back to Home</a>
+        </section>
+    </main>
+
+</body>
+
+</html>

@@ -1,22 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <title>Home - DOMpile Demo</title>
 </head>
+
 <body>
-  <!--#include virtual="/includes/header.html" -->
-  
-  <main>
-    <h2>Welcome to DOMpile!</h2>
-    <p>This is a demonstration of the dompile static site generator.</p>
-    <p>Features demonstrated:</p>
-    <ul>
-      <li>HTML includes using Apache SSI syntax</li>
-      <li>Automatic head injection</li>
-      <li>Static asset handling</li>
-    </ul>
-  </main>
-  
+  <!--#include virtual="/includes/home-header.html" -->
+  <section>
+    <h2>Why DomPile?</h2>
+    <p>DomPile is a minimalist CLI tool that restores serenity to web development. No framework, no bundler, no
+      runtime&mdash;just plain HTML includes and head injection.</p>
+  </section>
+
+  <section class="features">
+    <div class="card" data-augmented-ui="tl-clip tr-scoop">
+      <h3>Simple Includes</h3>
+      <p>Write <!--\#include file="header.html"--> - no template engine needed.</p>
+    </div>
+    <div class="card" data-augmented-ui="tr-clip bl-clip">
+      <h3>Head Injection</h3>
+      <p><code><pre><head></head></pre></code> tags injected smoothly into every page.</p>
+    </div>
+    <div class="card" data-augmented-ui="bl-clip tr-scoop">
+      <h3>Modern CLI</h3>
+      <p>Works with Node, Bun, Deno, supports dry-run, verbose, build &amp; serve.</p>
+    </div>
+  </section>
+
+  <section id="demo">
+    <h2>See It in Action</h2>
+    <pre class="cli" data-augmented-ui="border bl-clip br-clip tr-round">
+$ dompile build
+Processing: index.html => dist/index.html
+Injecting includes into head...
+Build complete in 114 ms
+  </pre>
+  </section>
+
+  <section>
+    <h2>Solarpunk Ethos</h2>
+    <p>Rooted in solarpunk philosophy-a future built on joyful, sustainable simplicity. DomPile embodies DIY technology,
+      eco-minded design, and digital minimalism.</p>
+  </section>
+
+  <section id="get-started" style="text-align:center;">
+    <a class="btn" href="getting-started.html" data-augmented-ui="tl-round tr-round bl-clip br-clip">Get Started →</a>
+  </section>
+
   <!--#include virtual="/includes/footer.html" -->
 </body>
+
 </html>
