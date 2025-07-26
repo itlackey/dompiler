@@ -1,0 +1,48 @@
+{
+  "name": "vanilla-wafer",
+  "version": "0.1.0",
+  "description": "A lightweight, framework-free static site generator with Apache SSI-style includes and live reload",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "vanilla-wafer": "bin/cli.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/**/*.test.js",
+    "dev": "node bin/cli.js serve --source examples/basic",
+    "build": "node bin/cli.js build --source examples/basic --output dist"
+  },
+  "keywords": [
+    "static-site-generator",
+    "html",
+    "includes",
+    "ssi",
+    "build-tool",
+    "frontend",
+    "development",
+    "live-reload"
+  ],
+  "author": "Vanilla Wafer Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/username/vanilla-wafer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/username/vanilla-wafer/issues"
+  },
+  "homepage": "https://github.com/username/vanilla-wafer#readme",
+  "dependencies": {
+    "chokidar": "^3.5.3"
+  },
+  "devDependencies": {},
+  "files": [
+    "bin/",
+    "src/",
+    "README.md",
+    "CLAUDE.md"
+  ]
+}

@@ -1,0 +1,81 @@
+/**
+ * Command-line argument parser for vanilla-wafer
+ * Handles parsing of CLI arguments and options
+ */
+
+export function parseArgs(argv) {
+  const args = {
+    command: null,
+    source: 'src',
+    output: 'dist', 
+    includes: 'includes',
+    head: null,
+    port: 3000,
+    help: false,
+    version: false
+  };
+  
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    const nextArg = argv[i + 1];
+    
+    // Commands
+    if (arg === 'build' || arg === 'serve') {
+      args.command = arg;
+      continue;
+    }
+    
+    // Flags
+    if (arg === '--help' || arg === '-h') {
+      args.help = true;
+      continue;
+    }
+    
+    if (arg === '--version' || arg === '-v') {
+      args.version = true;
+      continue;
+    }
+    
+    // Options with values
+    if ((arg === '--source' || arg === '-s') && nextArg) {
+      args.source = nextArg;
+      i++;
+      continue;
+    }
+    
+    if ((arg === '--output' || arg === '-o') && nextArg) {
+      args.output = nextArg;
+      i++;
+      continue;
+    }
+    
+    if ((arg === '--includes' || arg === '-i') && nextArg) {
+      args.includes = nextArg;
+      i++;
+      continue;
+    }
+    
+    if (arg === '--head' && nextArg) {
+      args.head = nextArg;
+      i++;
+      continue;
+    }
+    
+    if ((arg === '--port' || arg === '-p') && nextArg) {
+      const port = parseInt(nextArg, 10);
+      if (isNaN(port) || port < 1 || port > 65535) {
+        throw new Error(`Invalid port number: ${nextArg}`);
+      }
+      args.port = port;
+      i++;
+      continue;
+    }
+    
+    // Unknown arguments
+    if (arg.startsWith('-')) {
+      throw new Error(`Unknown option: ${arg}`);
+    }
+  }
+  
+  return args;
+}
