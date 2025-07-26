@@ -79,6 +79,15 @@ export class DependencyTracker {
   }
   
   /**
+   * Get all pages that depend on a specific include file (alias for getAffectedPages)
+   * @param {string} includePath - Path to the include file
+   * @returns {string[]} Array of page paths that depend on the include
+   */
+  getDependentPages(includePath) {
+    return this.getAffectedPages(includePath);
+  }
+
+  /**
    * Get all pages that depend on a specific include file
    * @param {string} includePath - Path to the include file
    * @returns {string[]} Array of page paths that depend on the include
@@ -167,6 +176,35 @@ export class DependencyTracker {
   analyzePage(pagePath, htmlContent, sourceRoot) {
     const dependencies = extractIncludeDependencies(htmlContent, pagePath, sourceRoot);
     this.recordDependencies(pagePath, dependencies);
+    
+    // Also analyze nested dependencies for deeper tracking
+    this.analyzeNestedDependencies(pagePath, sourceRoot);
+  }
+
+  /**
+   * Analyze nested dependencies by reading include files
+   * @param {string} pagePath - Path to the page file
+   * @param {string} sourceRoot - Source root directory
+   */
+  async analyzeNestedDependencies(pagePath, sourceRoot) {
+    const directDependencies = this.getPageDependencies(pagePath);
+    
+    for (const includePath of directDependencies) {
+      try {
+        // Read the include file to find its dependencies
+        const fs = await import('fs/promises');
+        const includeContent = await fs.readFile(includePath, 'utf-8');
+        const nestedDependencies = extractIncludeDependencies(includeContent, includePath, sourceRoot);
+        
+        if (nestedDependencies.length > 0) {
+          this.recordDependencies(includePath, nestedDependencies);
+          logger.debug(`Found ${nestedDependencies.length} nested dependencies in ${includePath}`);
+        }
+      } catch (error) {
+        // Include file might not exist or be readable - log but continue
+        logger.debug(`Could not analyze nested dependencies for ${includePath}: ${error.message}`);
+      }
+    }
   }
   
   /**

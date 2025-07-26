@@ -4,7 +4,7 @@
  */
 
 import chokidar from 'chokidar';
-import { build } from './file-processor.js';
+import { build, incrementalBuild, initializeModificationCache } from './file-processor.js';
 import { logger } from '../utils/logger.js';
 
 /**
@@ -28,8 +28,15 @@ export async function watch(options = {}) {
 
   // Initial build
   logger.info('Starting file watcher...');
+  let dependencyTracker, assetTracker;
   try {
-    await build(config);
+    const result = await build(config);
+    dependencyTracker = result.dependencyTracker;
+    assetTracker = result.assetTracker;
+    
+    // Initialize modification cache for incremental builds
+    await initializeModificationCache(config.source);
+    
     logger.success('Initial build completed');
   } catch (error) {
     logger.error('Initial build failed:', error.message);
@@ -44,23 +51,57 @@ export async function watch(options = {}) {
   });
 
   let buildInProgress = false;
+  let debounceTimer = null;
 
   const handleFileChange = async (eventType, filePath) => {
     if (buildInProgress) {
       return; // Skip if already building
     }
 
-    logger.info(`File ${eventType}: ${filePath}`);
-    buildInProgress = true;
-
-    try {
-      await build(config);
-      logger.success('Rebuild completed');
-    } catch (error) {
-      logger.error('Rebuild failed:', error.message);
-    } finally {
-      buildInProgress = false;
+    // Clear existing timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
     }
+
+    // Debounce file changes (100ms delay)
+    debounceTimer = setTimeout(async () => {
+      logger.info(`File ${eventType}: ${filePath}`);
+      buildInProgress = true;
+
+      try {
+        // Use incremental build for better performance
+        const result = await incrementalBuild(config, filePath, dependencyTracker, assetTracker);
+        dependencyTracker = result.dependencyTracker;
+        assetTracker = result.assetTracker;
+        
+        logger.success('Incremental rebuild completed');
+        
+        // Notify live reload clients if callback provided
+        if (config.onReload) {
+          config.onReload(eventType, filePath);
+        }
+      } catch (error) {
+        logger.error('Incremental rebuild failed:', error.message);
+        
+        // Fallback to full build if incremental build fails
+        try {
+          logger.info('Falling back to full rebuild...');
+          const result = await build(config);
+          dependencyTracker = result.dependencyTracker;
+          assetTracker = result.assetTracker;
+          await initializeModificationCache(config.source);
+          logger.success('Full rebuild completed');
+          
+          if (config.onReload) {
+            config.onReload(eventType, filePath);
+          }
+        } catch (fullBuildError) {
+          logger.error('Full rebuild also failed:', fullBuildError.message);
+        }
+      } finally {
+        buildInProgress = false;
+      }
+    }, 100);
   };
 
   watcher

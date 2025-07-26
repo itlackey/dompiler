@@ -8,6 +8,14 @@ import path from 'path';
 import { processIncludes } from './include-processor.js';
 import { getHeadSnippet, injectHeadContent } from './head-injector.js';
 import { DependencyTracker } from './dependency-tracker.js';
+import { AssetTracker } from './asset-tracker.js';
+import { 
+  processMarkdown, 
+  isMarkdownFile, 
+  wrapInLayout, 
+  generateTableOfContents, 
+  addAnchorLinks 
+} from './markdown-processor.js';
 import { 
   isHtmlFile, 
   isPartialFile, 
@@ -16,6 +24,11 @@ import {
 } from '../utils/path-resolver.js';
 import { FileSystemError, BuildError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
+
+/**
+ * Cache for tracking file modification times for incremental builds
+ */
+const fileModificationCache = new Map();
 
 /**
  * Build configuration options
@@ -92,14 +105,22 @@ export async function build(options = {}) {
       logger.info('Loaded global head snippet');
     }
     
-    // Initialize dependency tracker
+    // Initialize dependency and asset trackers
     const dependencyTracker = new DependencyTracker();
+    const assetTracker = new AssetTracker();
     
     // Scan source directory
     const sourceFiles = await scanDirectory(sourceRoot);
     logger.info(`Found ${sourceFiles.length} source files`);
     
-    // Process files
+    // Categorize files
+    const contentFiles = sourceFiles.filter(file => 
+      (isHtmlFile(file) && !isPartialFile(file, config.includes)) || isMarkdownFile(file)
+    );
+    const assetFiles = sourceFiles.filter(file => 
+      !isHtmlFile(file) && !isMarkdownFile(file)
+    );
+    
     const results = {
       processed: 0,
       copied: 0,
@@ -107,6 +128,19 @@ export async function build(options = {}) {
       errors: []
     };
     
+    // Load layout file for markdown (if it exists)
+    const layoutFile = await findLayoutFile(sourceRoot);
+    let layoutContent = null;
+    if (layoutFile) {
+      try {
+        layoutContent = await fs.readFile(layoutFile, 'utf-8');
+        logger.debug(`Using layout file: ${path.relative(sourceRoot, layoutFile)}`);
+      } catch (error) {
+        logger.warn(`Could not read layout file ${layoutFile}: ${error.message}`);
+      }
+    }
+    
+    // Process content files (HTML and Markdown) first to discover asset dependencies
     for (const filePath of sourceFiles) {
       try {
         const relativePath = path.relative(sourceRoot, filePath);
@@ -123,19 +157,46 @@ export async function build(options = {}) {
               sourceRoot, 
               outputRoot, 
               headSnippet,
-              dependencyTracker
+              dependencyTracker,
+              assetTracker
             );
             results.processed++;
-            logger.debug(`Processed: ${relativePath}`);
+            logger.debug(`Processed HTML: ${relativePath}`);
           }
-        } else {
-          // Copy static asset
-          await copyAsset(filePath, sourceRoot, outputRoot);
-          results.copied++;
-          logger.debug(`Copied: ${relativePath}`);
+        } else if (isMarkdownFile(filePath)) {
+          // Process Markdown file
+          await processMarkdownFile(
+            filePath,
+            sourceRoot,
+            outputRoot,
+            headSnippet,
+            layoutContent,
+            assetTracker
+          );
+          results.processed++;
+          logger.debug(`Processed Markdown: ${relativePath}`);
         }
       } catch (error) {
         logger.error(`Error processing ${filePath}: ${error.message}`);
+        results.errors.push({ file: filePath, error: error.message });
+      }
+    }
+    
+    // Second pass: Copy only referenced assets
+    for (const filePath of assetFiles) {
+      try {
+        const relativePath = path.relative(sourceRoot, filePath);
+        
+        if (assetTracker.isAssetReferenced(filePath)) {
+          await copyAsset(filePath, sourceRoot, outputRoot);
+          results.copied++;
+          logger.debug(`Copied referenced asset: ${relativePath}`);
+        } else {
+          logger.debug(`Skipped unreferenced asset: ${relativePath}`);
+          results.skipped++;
+        }
+      } catch (error) {
+        logger.error(`Error copying asset ${filePath}: ${error.message}`);
         results.errors.push({ file: filePath, error: error.message });
       }
     }
@@ -153,12 +214,302 @@ export async function build(options = {}) {
     return {
       ...results,
       duration,
-      dependencyTracker
+      dependencyTracker,
+      assetTracker
     };
     
   } catch (error) {
     logger.error('Build failed:', error.message);
     throw error;
+  }
+}
+
+/**
+ * Perform incremental build - only rebuild files that have changed
+ * @param {Object} options - Build configuration options
+ * @param {string} changedFile - Specific file that changed (optional)
+ * @param {DependencyTracker} dependencyTracker - Existing dependency tracker
+ * @returns {Promise<Object>} Build results
+ */
+export async function incrementalBuild(options = {}, changedFile = null, dependencyTracker = null, assetTracker = null) {
+  const config = { ...DEFAULT_OPTIONS, ...options };
+  const startTime = Date.now();
+  
+  logger.info(`Starting incremental build...`);
+  
+  try {
+    const sourceRoot = path.resolve(config.source);
+    const outputRoot = path.resolve(config.output);
+    
+    // Initialize or reuse trackers
+    const tracker = dependencyTracker || new DependencyTracker();
+    const assets = assetTracker || new AssetTracker();
+    
+    // Load head snippet
+    const headSnippet = await getHeadSnippet(sourceRoot, config.includes, config.head);
+    
+    // Determine what files need rebuilding
+    const filesToRebuild = await getFilesToRebuild(sourceRoot, changedFile, tracker);
+    
+    const results = {
+      processed: 0,
+      copied: 0,
+      skipped: 0,
+      errors: []
+    };
+    
+    if (filesToRebuild.length === 0) {
+      logger.info('No files need rebuilding');
+      return { ...results, duration: Date.now() - startTime, dependencyTracker: tracker };
+    }
+    
+    logger.info(`Rebuilding ${filesToRebuild.length} file(s)...`);
+    
+    for (const filePath of filesToRebuild) {
+      try {
+        const relativePath = path.relative(sourceRoot, filePath);
+        
+        if (isHtmlFile(filePath)) {
+          if (!isPartialFile(filePath, config.includes)) {
+            await processHtmlFile(filePath, sourceRoot, outputRoot, headSnippet, tracker, assets);
+            results.processed++;
+            logger.debug(`Rebuilt HTML: ${relativePath}`);
+          }
+        } else if (isMarkdownFile(filePath)) {
+          // Load layout for markdown processing
+          const layoutFile = await findLayoutFile(sourceRoot);
+          let layoutContent = null;
+          if (layoutFile) {
+            try {
+              layoutContent = await fs.readFile(layoutFile, 'utf-8');
+            } catch (error) {
+              logger.warn(`Could not read layout file ${layoutFile}: ${error.message}`);
+            }
+          }
+          
+          await processMarkdownFile(filePath, sourceRoot, outputRoot, headSnippet, layoutContent, assets);
+          results.processed++;
+          logger.debug(`Rebuilt Markdown: ${relativePath}`);
+        } else {
+          // For assets, only copy if referenced (or during initial build)
+          if (assets.isAssetReferenced(filePath) || !assetTracker) {
+            await copyAsset(filePath, sourceRoot, outputRoot);
+            results.copied++;
+            logger.debug(`Copied: ${relativePath}`);
+          } else {
+            logger.debug(`Skipped unreferenced asset: ${relativePath}`);
+            results.skipped++;
+          }
+        }
+        
+        // Update modification cache
+        const stats = await fs.stat(filePath);
+        fileModificationCache.set(filePath, stats.mtime.getTime());
+        
+      } catch (error) {
+        logger.error(`Error processing ${filePath}: ${error.message}`);
+        results.errors.push({ file: filePath, error: error.message });
+      }
+    }
+    
+    const duration = Date.now() - startTime;
+    logger.success(`Incremental build completed in ${duration}ms`);
+    logger.info(`Rebuilt: ${results.processed} pages, ${results.copied} assets`);
+    
+    if (results.errors.length > 0) {
+      logger.error(`Incremental build failed with ${results.errors.length} errors`);
+      throw new BuildError(`Incremental build failed with ${results.errors.length} errors`, results.errors);
+    }
+    
+    return {
+      ...results,
+      duration,
+      dependencyTracker: tracker,
+      assetTracker: assets
+    };
+    
+  } catch (error) {
+    logger.error('Incremental build failed:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Get list of files that need rebuilding based on changes
+ * @param {string} sourceRoot - Source root directory
+ * @param {string|null} changedFile - Specific file that changed
+ * @param {DependencyTracker} dependencyTracker - Dependency tracker
+ * @returns {Promise<string[]>} Array of file paths to rebuild
+ */
+async function getFilesToRebuild(sourceRoot, changedFile, dependencyTracker) {
+  const filesToRebuild = new Set();
+  
+  if (changedFile) {
+    // Specific file changed - determine impact
+    const resolvedChangedFile = path.resolve(changedFile);
+    
+    if (isHtmlFile(resolvedChangedFile)) {
+      if (isPartialFile(resolvedChangedFile)) {
+        // Partial file changed - rebuild all pages that depend on it
+        const dependentPages = dependencyTracker.getDependentPages(resolvedChangedFile);
+        dependentPages.forEach(page => filesToRebuild.add(page));
+        logger.debug(`Partial ${path.relative(sourceRoot, resolvedChangedFile)} changed, rebuilding ${dependentPages.length} dependent pages`);
+      } else {
+        // Main page changed - rebuild just this page
+        filesToRebuild.add(resolvedChangedFile);
+        logger.debug(`Page ${path.relative(sourceRoot, resolvedChangedFile)} changed`);
+      }
+    } else {
+      // Asset changed - copy just this asset
+      filesToRebuild.add(resolvedChangedFile);
+      logger.debug(`Asset ${path.relative(sourceRoot, resolvedChangedFile)} changed`);
+    }
+  } else {
+    // No specific file - check all files for changes
+    const allFiles = await scanDirectory(sourceRoot);
+    
+    for (const filePath of allFiles) {
+      if (await hasFileChanged(filePath)) {
+        filesToRebuild.add(filePath);
+      }
+    }
+  }
+  
+  return Array.from(filesToRebuild);
+}
+
+/**
+ * Check if a file has changed since last build
+ * @param {string} filePath - File path to check
+ * @returns {Promise<boolean>} True if file has changed
+ */
+async function hasFileChanged(filePath) {
+  try {
+    const stats = await fs.stat(filePath);
+    const currentMtime = stats.mtime.getTime();
+    const cachedMtime = fileModificationCache.get(filePath);
+    
+    return !cachedMtime || currentMtime > cachedMtime;
+  } catch (error) {
+    // File doesn't exist or can't be accessed - consider it changed
+    return true;
+  }
+}
+
+/**
+ * Initialize file modification cache for a directory
+ * @param {string} sourceRoot - Source root directory
+ */
+export async function initializeModificationCache(sourceRoot) {
+  const files = await scanDirectory(sourceRoot);
+  
+  for (const filePath of files) {
+    try {
+      const stats = await fs.stat(filePath);
+      fileModificationCache.set(filePath, stats.mtime.getTime());
+    } catch (error) {
+      // Ignore files that can't be accessed
+    }
+  }
+  
+  logger.debug(`Initialized modification cache with ${fileModificationCache.size} files`);
+}
+
+/**
+ * Find layout file for markdown processing
+ * @param {string} sourceRoot - Source root directory
+ * @returns {Promise<string|null>} Path to layout file or null if not found
+ */
+async function findLayoutFile(sourceRoot) {
+  const possibleLayouts = [
+    path.join(sourceRoot, 'layout.html'),
+    path.join(sourceRoot, '_layout.html'),
+    path.join(sourceRoot, 'templates', 'layout.html'),
+    path.join(sourceRoot, 'layouts', 'default.html'),
+    path.join(sourceRoot, 'includes', 'layout.html')
+  ];
+  
+  for (const layoutPath of possibleLayouts) {
+    try {
+      await fs.access(layoutPath);
+      return layoutPath;
+    } catch {
+      // File doesn't exist, try next
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Process a single Markdown file
+ * @param {string} filePath - Path to Markdown file
+ * @param {string} sourceRoot - Source root directory
+ * @param {string} outputRoot - Output root directory
+ * @param {string|null} headSnippet - Head snippet to inject
+ * @param {string|null} layoutContent - Layout template content
+ * @param {AssetTracker} assetTracker - Asset tracker instance
+ */
+async function processMarkdownFile(filePath, sourceRoot, outputRoot, headSnippet, layoutContent, assetTracker) {
+  // Read markdown content
+  let markdownContent;
+  try {
+    markdownContent = await fs.readFile(filePath, 'utf-8');
+  } catch (error) {
+    throw new FileSystemError('read', filePath, error);
+  }
+  
+  // Process includes in markdown content first (before converting to HTML)
+  const processedMarkdown = await processIncludes(markdownContent, filePath, sourceRoot, new Set(), 0, null);
+  
+  // Process markdown to HTML
+  const { html, frontmatter, title, excerpt } = processMarkdown(processedMarkdown, filePath);
+  
+  // Add anchor links to headings
+  const htmlWithAnchors = addAnchorLinks(html);
+  
+  // Wrap in layout if available
+  const metadata = { frontmatter, title, excerpt };
+  let finalContent;
+  
+  if (layoutContent) {
+    finalContent = wrapInLayout(htmlWithAnchors, metadata, layoutContent);
+  } else {
+    // Create basic HTML structure
+    finalContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title || 'Untitled'}</title>
+  ${excerpt ? `<meta name="description" content="${excerpt}">` : ''}
+</head>
+<body>
+  <main>
+    ${htmlWithAnchors}
+  </main>
+</body>
+</html>`;
+  }
+  
+  // Inject head content if available
+  if (headSnippet) {
+    finalContent = injectHeadContent(finalContent, headSnippet);
+  }
+  
+  // Track asset references in the final content
+  if (assetTracker) {
+    assetTracker.recordAssetReferences(filePath, finalContent, sourceRoot);
+  }
+  
+  // Generate output path (change .md to .html)
+  const outputPath = path.join(outputRoot, path.relative(sourceRoot, filePath).replace(/\.md$/i, '.html'));
+  await ensureDirectoryExists(path.dirname(outputPath));
+  
+  try {
+    await fs.writeFile(outputPath, finalContent, 'utf-8');
+  } catch (error) {
+    throw new FileSystemError('write', outputPath, error);
   }
 }
 
@@ -169,8 +520,9 @@ export async function build(options = {}) {
  * @param {string} outputRoot - Output root directory
  * @param {string|null} headSnippet - Head snippet to inject
  * @param {DependencyTracker} dependencyTracker - Dependency tracker instance
+ * @param {AssetTracker} assetTracker - Asset tracker instance
  */
-async function processHtmlFile(filePath, sourceRoot, outputRoot, headSnippet, dependencyTracker) {
+async function processHtmlFile(filePath, sourceRoot, outputRoot, headSnippet, dependencyTracker, assetTracker) {
   // Read HTML content
   let htmlContent;
   try {
@@ -189,6 +541,11 @@ async function processHtmlFile(filePath, sourceRoot, outputRoot, headSnippet, de
   const finalContent = headSnippet ? 
     injectHeadContent(processedContent, headSnippet) : 
     processedContent;
+  
+  // Track asset references in the final content
+  if (assetTracker) {
+    assetTracker.recordAssetReferences(filePath, finalContent, sourceRoot);
+  }
   
   // Write to output
   const outputPath = getOutputPath(filePath, sourceRoot, outputRoot);

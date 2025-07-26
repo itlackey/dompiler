@@ -49,7 +49,7 @@ describe('CLI integration', () => {
     );
     
     await fs.writeFile(
-      path.join(sourceDir, 'style.css'),
+      path.join(sourceDir, 'main.css'),
       'body { margin: 0; }'
     );
   });
@@ -66,7 +66,7 @@ describe('CLI integration', () => {
   it('should show version with --version flag', async () => {
     const result = await runCLI(['--version']);
     assert.strictEqual(result.exitCode, 0);
-    assert(result.stdout.includes('dompile v0.1.0'));
+    assert(result.stdout.includes('dompile v0.4.0'));
   });
   
   it('should show help with --help flag', async () => {
@@ -97,7 +97,7 @@ describe('CLI integration', () => {
     
     // Verify output files
     await fs.access(path.join(outputDir, 'index.html'));
-    await fs.access(path.join(outputDir, 'style.css'));
+    await fs.access(path.join(outputDir, 'main.css'));
     
     // Verify content processing
     const indexContent = await fs.readFile(path.join(outputDir, 'index.html'), 'utf-8');

@@ -1,6 +1,6 @@
 {
   "name": "dompile",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "description": "A lightweight, framework-free static site generator with Apache SSI-style includes and live reload",
   "type": "module",
   "main": "src/index.js",
@@ -13,7 +13,7 @@
   "scripts": {
     "test": "node --test test/**/*.test.js",
     "watch": "node bin/cli.js watch --source examples/basic/src --output examples/basic/dist",
-    "serve": "npx live-server examples/basic/dist --port=3000 --wait=500",  
+    "serve": "npx live-server examples/basic/dist --port=3000 --wait=500",
     "example": "npm run build && npm run serve",
     "build": "node bin/cli.js build --source examples/basic/src --output  examples/basic/dist"
   },
@@ -38,12 +38,13 @@
   },
   "homepage": "https://github.com/username/dompile#readme",
   "dependencies": {
-    "chokidar": "^3.5.3"
+    "chokidar": "^3.5.3",
+    "gray-matter": "^4.0.3",
+    "markdown-it": "^14.1.0"
   },
   "optionalDependencies": {
     "live-server": "^1.2.2"
   },
-  "devDependencies": {},
   "files": [
     "bin/",
     "src/",

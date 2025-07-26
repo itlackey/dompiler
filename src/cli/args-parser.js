@@ -10,6 +10,8 @@ export function parseArgs(argv) {
     output: 'dist', 
     includes: 'includes',
     head: null,
+    port: 3000,
+    host: 'localhost',
     help: false,
     version: false
   };
@@ -19,7 +21,7 @@ export function parseArgs(argv) {
     const nextArg = argv[i + 1];
     
     // Commands
-    if (arg === 'build' || arg === 'watch') {
+    if (arg === 'build' || arg === 'watch' || arg === 'serve') {
       args.command = arg;
       continue;
     }
@@ -66,6 +68,20 @@ export function parseArgs(argv) {
       continue;
     }
     
+    if ((arg === '--port' || arg === '-p') && nextArg) {
+      args.port = parseInt(nextArg, 10);
+      if (isNaN(args.port) || args.port < 1 || args.port > 65535) {
+        throw new Error('Port must be a number between 1 and 65535');
+      }
+      i++;
+      continue;
+    }
+    
+    if (arg === '--host' && nextArg) {
+      args.host = nextArg;
+      i++;
+      continue;
+    }
     
     // Unknown arguments
     if (arg.startsWith('-')) {
