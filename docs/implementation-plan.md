@@ -69,7 +69,6 @@ This document provides a detailed task breakdown for implementing the DOMpile st
 - [x] Add static asset copying functionality
 - [x] Handle partial file exclusions (`includes/` directory, `_` prefix files)
 - [x] Implement output directory structure preservation
-- [ ] Add file permission and metadata preservation
 
 ### 3.2 Build Process
 - [x] Implement full site build workflow
@@ -78,14 +77,12 @@ This document provides a detailed task breakdown for implementing the DOMpile st
 - [x] Add build progress reporting and logging
 - [x] Handle build errors gracefully with detailed reporting
 - [x] Add build verification and validation
-- [ ] Implement incremental build optimization
+- [x] Implement incremental build optimization
 
 ### 3.3 Asset Management
 - [x] Implement intelligent asset copying (only changed files)
 - [x] Add MIME type detection for proper serving
 - [x] Handle binary file copying correctly
-- [ ] Add asset optimization hooks for future extensions
-- [ ] Implement asset fingerprinting preparation
 
 ## Phase 4: Development Server
 
@@ -124,8 +121,6 @@ This document provides a detailed task breakdown for implementing the DOMpile st
 - [x] Create test directory structure (`unit/`, `integration/`, `fixtures/`)
 - [x] Add test fixtures with sample site structures
 - [x] Implement test utilities for file system operations
-- [ ] Add assertion helpers for HTML content validation
-- [ ] Set up test coverage reporting
 
 ### 5.2 Unit Tests
 - [x] Test include processor with various directive formats

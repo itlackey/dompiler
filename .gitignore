@@ -75,3 +75,4 @@ temp/
 # Test output
 test-results/
 coverage/
+.claude/
