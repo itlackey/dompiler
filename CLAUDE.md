@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-**Vanilla Wafer** is a fully implemented, working static site generator that processes HTML files with Apache SSI-style includes. The core functionality is complete and tested, with ~80% implementation finished.
+**DOMpile** is a fully implemented, working static site generator that processes HTML files with Apache SSI-style includes. The core functionality is complete and tested, with ~80% implementation finished.
 
 ## Development Commands
 
@@ -25,13 +25,13 @@ npm run build
 npm run dev
 
 # Direct CLI usage (after npm link)
-vanilla-wafer build --source examples/basic/src --output dist
-vanilla-wafer serve --source examples/basic/src --port 3001
+dompile build --source examples/basic/src --output dist
+dompile serve --source examples/basic/src --port 3001
 ```
 
 ## Architecture Overview
 
-Vanilla Wafer operates in two modes with a sophisticated processing pipeline:
+DOMpile operates in two modes with a sophisticated processing pipeline:
 
 ### Build Mode Architecture
 ```

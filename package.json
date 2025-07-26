@@ -1,11 +1,11 @@
 {
-  "name": "vanilla-wafer",
+  "name": "dompile",
   "version": "0.1.0",
   "description": "A lightweight, framework-free static site generator with Apache SSI-style includes and live reload",
   "type": "module",
   "main": "src/index.js",
   "bin": {
-    "vanilla-wafer": "bin/cli.js"
+    "dompile": "bin/cli.js"
   },
   "engines": {
     "node": ">=14.0.0"
@@ -25,16 +25,16 @@
     "development",
     "live-reload"
   ],
-  "author": "Vanilla Wafer Contributors",
+  "author": "DOMpile Contributors",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/username/vanilla-wafer.git"
+    "url": "git+https://github.com/username/dompile.git"
   },
   "bugs": {
-    "url": "https://github.com/username/vanilla-wafer/issues"
+    "url": "https://github.com/username/dompile/issues"
   },
-  "homepage": "https://github.com/username/vanilla-wafer#readme",
+  "homepage": "https://github.com/username/dompile#readme",
   "dependencies": {
     "chokidar": "^3.5.3"
   },

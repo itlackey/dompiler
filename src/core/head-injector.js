@@ -1,5 +1,5 @@
 /**
- * Head Injection System for vanilla-wafer
+ * Head Injection System for dompile
  * Automatically injects common head content into HTML pages
  */
 

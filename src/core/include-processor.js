@@ -1,5 +1,5 @@
 /**
- * HTML Include Processor for vanilla-wafer
+ * HTML Include Processor for dompile
  * Handles expansion of Apache SSI-style include directives
  */
 

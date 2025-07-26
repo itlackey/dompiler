@@ -1,6 +1,6 @@
-# Vanilla Wafer Implementation Plan
+# DOMpile Implementation Plan
 
-This document provides a detailed task breakdown for implementing the Vanilla Wafer static site generator from scratch. Tasks are organized by implementation phases and dependencies.
+This document provides a detailed task breakdown for implementing the DOMpile static site generator from scratch. Tasks are organized by implementation phases and dependencies.
 
 ## Phase 1: Project Foundation
 
@@ -8,7 +8,7 @@ This document provides a detailed task breakdown for implementing the Vanilla Wa
 - [x] Create `package.json` with ESM configuration (`"type": "module"`)
 - [x] Set up basic project metadata (name, version, description, license)
 - [x] Configure `engines` field to require Node.js 14+
-- [x] Add `bin` field mapping `vanilla-wafer` to CLI entry point
+- [x] Add `bin` field mapping `dompile` to CLI entry point
 - [x] Initialize git repository and add `.gitignore`
 - [x] Set up basic directory structure (`src/`, `test/`, `bin/`)
 
@@ -174,7 +174,7 @@ This document provides a detailed task breakdown for implementing the Vanilla Wa
 ### 7.3 Examples and Demos
 - [ ] Create example project demonstrating all features
 - [ ] Add sample include files (header, footer, navigation)
-- [ ] Create documentation site using Vanilla Wafer itself
+- [ ] Create documentation site using DOMpile itself
 - [ ] Add video or GIF demos of live reload functionality
 - [ ] Create template repository for quick starts
 

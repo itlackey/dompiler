@@ -1,10 +1,10 @@
-# Vanilla Wafer Architecture
+# DOMpile Architecture
 
-This document provides a detailed technical overview of the Vanilla Wafer static site generator implementation, based on the comprehensive design plan.
+This document provides a detailed technical overview of the DOMpile static site generator implementation, based on the comprehensive design plan.
 
 ## Overview
 
-Vanilla Wafer is a lightweight static site generator that processes HTML files with server-side include (SSI) directives at build time. It transforms HTML templates with include statements into complete, standalone HTML files while providing a file watcher for automatic rebuilds during development.
+DOMpile is a lightweight static site generator that processes HTML files with server-side include (SSI) directives at build time. It transforms HTML templates with include statements into complete, standalone HTML files while providing a file watcher for automatic rebuilds during development.
 
 ## Core Design Principles
 
@@ -66,7 +66,7 @@ src/
 {
   "type": "module",
   "bin": {
-    "vanilla-wafer": "bin/cli.js"
+    "dompile": "bin/cli.js"
   },
   "engines": {
     "node": ">=14.0.0"
@@ -103,7 +103,7 @@ switch (args.command) {
     console.log('Watching for file changes...');
     break;
   default:
-    console.log('Usage: vanilla-wafer <build|watch> [options]');
+    console.log('Usage: dompile <build|watch> [options]');
 }
 ```
 
@@ -379,10 +379,10 @@ async function handleFileChange(filePath) {
 
 ```bash
 # Direct execution
-bun run vanilla-wafer serve
+bun run dompile serve
 
 # Package installation
-bunx vanilla-wafer build
+bunx dompile build
 ```
 
 - High Node.js API compatibility
@@ -395,7 +395,7 @@ bunx vanilla-wafer build
 
 ```bash
 # With npm package
-deno run --allow-read --allow-write --allow-net npm:vanilla-wafer
+deno run --allow-read --allow-write --allow-net npm:dompile
 
 # Direct execution (with permissions)
 deno run --allow-read --allow-write path/to/cli.js
@@ -511,4 +511,4 @@ test/
 
 ## Conclusion
 
-Vanilla Wafer's architecture prioritizes simplicity, performance, and maintainability while providing powerful static site generation capabilities. The modular design allows for easy testing, extension, and cross-platform compatibility, making it an ideal tool for frontend developers who need the power of includes without framework complexity.
+DOMpile's architecture prioritizes simplicity, performance, and maintainability while providing powerful static site generation capabilities. The modular design allows for easy testing, extension, and cross-platform compatibility, making it an ideal tool for frontend developers who need the power of includes without framework complexity.

@@ -13,7 +13,7 @@ async function main() {
     
     // Handle version and help flags
     if (args.version) {
-      console.log(`vanilla-wafer v${VERSION}`);
+      console.log(`dompile v${VERSION}`);
       process.exit(0);
     }
     
@@ -56,9 +56,9 @@ async function main() {
 
 function showHelp() {
   console.log(`
-vanilla-wafer v${VERSION}
+dompile v${VERSION}
 
-Usage: vanilla-wafer <command> [options]
+Usage: dompile <command> [options]
 
 Commands:
   build     Build static site from source files
@@ -73,9 +73,9 @@ Options:
   --version, -v   Show version number
 
 Examples:
-  vanilla-wafer build --source src --output dist
-  vanilla-wafer watch --source src --output dist
-  vanilla-wafer build --head common/head.html
+  dompile build --source src --output dist
+  dompile watch --source src --output dist
+  dompile build --head common/head.html
 `);
 }
 

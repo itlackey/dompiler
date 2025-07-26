@@ -1,5 +1,5 @@
 /**
- * Path resolution utilities for vanilla-wafer
+ * Path resolution utilities for dompile
  * Handles secure path resolution and validation
  */
 

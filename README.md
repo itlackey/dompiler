@@ -1,4 +1,4 @@
-# Vanilla Wafer 🍪
+# DOMpile 🍪
 
 A lightweight, framework-free static site generator that brings the power of server-side includes to your development workflow. Build maintainable static sites by composing HTML partials—no more copying and pasting headers, footers, and navigation across multiple pages!
 
@@ -14,13 +14,13 @@ A lightweight, framework-free static site generator that brings the power of ser
 
 ```bash
 # Install globally
-npm install -g vanilla-wafer
+npm install -g dompile
 
 # Or use with npx
-npx vanilla-wafer build --source src --output dist
+npx dompile build --source src --output dist
 
 # Start development server with live reload
-npx vanilla-wafer serve --source src
+npx dompile serve --source src
 ```
 
 ## 📁 Project Structure
@@ -68,11 +68,11 @@ Place common meta tags, CSS, and scripts in `head.html` and they'll be automatic
 
 ### Live Development
 
-Use `vanilla-wafer watch` to automatically rebuild your site when files change. For live reloading in the browser, combine with your favorite development server like `live-server`:
+Use `dompile watch` to automatically rebuild your site when files change. For live reloading in the browser, combine with your favorite development server like `live-server`:
 
 ```bash
 # Terminal 1: Watch and rebuild on changes
-vanilla-wafer watch --source src --output dist
+dompile watch --source src --output dist
 
 # Terminal 2: Serve with live reload
 npx live-server dist --port=3000 --watch=dist
@@ -82,8 +82,8 @@ npx live-server dist --port=3000 --watch=dist
 
 ### Commands
 
-- **`vanilla-wafer build [options]`** - Build your static site
-- **`vanilla-wafer watch [options]`** - Watch files and rebuild on changes
+- **`dompile build [options]`** - Build your static site
+- **`dompile watch [options]`** - Watch files and rebuild on changes
 
 ### Options
 
@@ -103,19 +103,19 @@ For the best development experience with automatic browser refresh:
 npm install -g live-server
 
 # Option 1: Use two terminals
-vanilla-wafer watch --source src --output dist
+dompile watch --source src --output dist
 live-server dist --port=3000
 
 # Option 2: Use npm scripts in package.json
 {
   "scripts": {
-    "dev": "vanilla-wafer watch --source src --output dist & live-server dist --port=3000 --wait=500",
-    "build": "vanilla-wafer build --source src --output dist"
+    "dev": "dompile watch --source src --output dist & live-server dist --port=3000 --wait=500",
+    "build": "dompile build --source src --output dist"
   }
 }
 ```
 
-## 🌟 Why Vanilla Wafer?
+## 🌟 Why DOMpile?
 
 Perfect for:
 
@@ -128,8 +128,8 @@ Perfect for:
 ## 🔗 Cross-Platform Support
 
 - **Node.js** 14+ (native ESM support)
-- **Bun**: `bun run vanilla-wafer watch`
-- **Deno**: `deno run --allow-read --allow-write npm:vanilla-wafer`
+- **Bun**: `bun run dompile watch`
+- **Deno**: `deno run --allow-read --allow-write npm:dompile`
 
 ---
 

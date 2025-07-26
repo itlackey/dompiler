@@ -1,5 +1,5 @@
 /**
- * Simple logging utility for vanilla-wafer
+ * Simple logging utility for dompile
  * Provides consistent logging across the application
  */
 

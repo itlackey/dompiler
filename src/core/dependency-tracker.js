@@ -1,5 +1,5 @@
 /**
- * Dependency Tracking System for vanilla-wafer
+ * Dependency Tracking System for dompile
  * Tracks include relationships for selective rebuilds
  */
 

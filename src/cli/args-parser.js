@@ -1,5 +1,5 @@
 /**
- * Command-line argument parser for vanilla-wafer
+ * Command-line argument parser for dompile
  * Handles parsing of CLI arguments and options
  */
 

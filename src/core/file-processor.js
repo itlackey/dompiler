@@ -1,5 +1,5 @@
 /**
- * File Processing System for vanilla-wafer
+ * File Processing System for dompile
  * Handles the build workflow and file operations
  */
 

@@ -1,5 +1,5 @@
 /**
- * File watching system for vanilla-wafer
+ * File watching system for dompile
  * Watches source files and rebuilds on changes
  */
 

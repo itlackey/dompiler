@@ -66,13 +66,13 @@ describe('CLI integration', () => {
   it('should show version with --version flag', async () => {
     const result = await runCLI(['--version']);
     assert.strictEqual(result.exitCode, 0);
-    assert(result.stdout.includes('vanilla-wafer v0.1.0'));
+    assert(result.stdout.includes('dompile v0.1.0'));
   });
   
   it('should show help with --help flag', async () => {
     const result = await runCLI(['--help']);
     assert.strictEqual(result.exitCode, 0);
-    assert(result.stdout.includes('Usage: vanilla-wafer'));
+    assert(result.stdout.includes('Usage: dompile'));
     assert(result.stdout.includes('Commands:'));
     assert(result.stdout.includes('build'));
     assert(result.stdout.includes('watch'));
@@ -81,7 +81,7 @@ describe('CLI integration', () => {
   it('should show help when no command provided', async () => {
     const result = await runCLI([]);
     assert.strictEqual(result.exitCode, 0);
-    assert(result.stdout.includes('Usage: vanilla-wafer'));
+    assert(result.stdout.includes('Usage: dompile'));
   });
   
   it('should build site with build command', async () => {

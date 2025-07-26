@@ -1,10 +1,10 @@
 /**
- * Custom error classes for vanilla-wafer
+ * Custom error classes for dompile
  * Provides specific error types for different failure scenarios
  */
 
 /**
- * Base error class for vanilla-wafer errors
+ * Base error class for dompile errors
  */
 export class VanillaWaferError extends Error {
   constructor(message, filePath = null, lineNumber = null) {
