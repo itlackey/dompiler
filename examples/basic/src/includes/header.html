@@ -1,10 +1,29 @@
-<header>
-  <nav>
-    <h1>DOMpile Demo</h1>
+<nav>
+  <div class="container">
+    <h1>DOMpile</h1>
+    <button class="nav-toggle" aria-label="Toggle navigation">☰</button>
     <ul>
       <li><a href="/">Home</a></li>
       <li><a href="/getting-started.html">Getting Started</a></li>
       <li><a href="/about.html">About</a></li>
     </ul>
-  </nav>
-</header>
+  </div>
+</nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const navToggle = document.querySelector('.nav-toggle');
+  const navList = document.querySelector('nav ul');
+  
+  navToggle.addEventListener('click', function() {
+    navList.classList.toggle('active');
+  });
+  
+  // Close mobile menu when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!navToggle.contains(e.target) && !navList.contains(e.target)) {
+      navList.classList.remove('active');
+    }
+  });
+});
+</script>
